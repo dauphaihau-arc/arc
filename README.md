@@ -16,7 +16,6 @@ This repository is the parent workspace for the Arc project. The application cod
 
 #### Backend:
 - [NestJS](https://nestjs.com/) - Node.js backend framework
-- [GraphQL](https://graphql.org/) - API query layer
 - [PostgreSQL](https://www.postgresql.org/) - Primary database
 - [MikroORM](https://mikro-orm.io/) - ORM and migrations
 - [JWT](https://jwt.io/) - Authentication
