@@ -21,6 +21,7 @@ This repository is the parent workspace for the Arc project. The application cod
 - [JWT](https://jwt.io/) - Authentication
 - [BullMQ](https://bullmq.io/) - Background jobs and workers
 - [Redis](https://redis.io/) - Cache, queues, and rate limiting
+- [MongoDB Atlas Search](https://www.mongodb.com/products/platform/atlas-search) - Optional catalog read-model search and recommendations
 - [AWS S3](https://aws.amazon.com/s3/) - Object storage
 - [Stripe](https://stripe.com/) - Payments
 - [Typescript](https://www.typescriptlang.org/) - Static type checking
