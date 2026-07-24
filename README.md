@@ -19,6 +19,13 @@ This repository is the parent workspace for the Arc project. The application cod
 - **Order fulfillment workflows** - sellers can review orders, update shipment state, handle cancellations, and process refunds
 - **Buyer-seller messaging** - customers and sellers can chat with conversation history, unread counts, and realtime delivery
 
+&nbsp;
+
+For technical implementation details, see:
+
+- [Backend implemented patterns and capabilities](./apps/api/README.md#implemented-patterns-and-capabilities)
+- [Frontend implemented patterns and capabilities](./apps/web/README.md#implemented-patterns-and-capabilities)
+
 ## Tech stack
 
 #### Frontend:
