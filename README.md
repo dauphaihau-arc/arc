@@ -17,19 +17,10 @@ A ecommerce marketplace workspace where people come together to make, sell, buy,
 - **Order fulfillment workflows** - sellers can review orders, update shipment state, handle cancellations, and process refunds
 - **Buyer-seller messaging** - customers and sellers can chat with conversation history, unread counts, and realtime delivery
 
-&nbsp;
-
 For technical implementation details, see:
 
 - [Backend implemented patterns and capabilities](./apps/api/README.md#implemented-patterns-and-capabilities)
 - [Frontend implemented patterns and capabilities](./apps/web/README.md#implemented-patterns-and-capabilities)
-
-## Workspace Structure
-
-This repository is the parent workspace for the Arc project. The application code lives in separate Git submodules so each app keeps its own history and remote repository.
-
-- [apps/web](./apps/web) - Nuxt monorepo for the customer storefront, seller app, and shared frontend packages
-- [apps/api](./apps/api) - NestJS backend API, database migrations, seed data, workers, and local infrastructure
 
 ## Tech stack
 
@@ -55,10 +46,13 @@ This repository is the parent workspace for the Arc project. The application cod
 - [Typescript](https://www.typescriptlang.org/) - Static type checking
 - [Zod](https://zod.dev/) - Schema validation
 
-## Repositories
+## Workspace Structure
+
+This repository is the parent workspace for the Arc project. The application code lives in separate Git submodules so each app keeps its own history and remote repository.
+
 - Parent workspace: [dauphaihau-arc/arc](https://github.com/dauphaihau-arc/arc)
-- Frontend: [dauphaihau-arc/web](https://github.com/dauphaihau-arc/web)
-- Backend: [dauphaihau-arc/api](https://github.com/dauphaihau-arc/api)
+- Frontend app: [apps/web](apps/web) - [dauphaihau-arc/web](https://github.com/dauphaihau-arc/web)
+- Backend app: [apps/api](apps/api) - [dauphaihau-arc/api](https://github.com/dauphaihau-arc/api)
 
 ## Setup
 ```bash
