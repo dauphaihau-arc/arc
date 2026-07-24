@@ -1,8 +1,6 @@
 # Arc
 A ecommerce marketplace workspace where people come together to make, sell, buy, and collect unique items.
 
-This repository is the parent workspace for the Arc project. The application code lives in separate Git submodules so each app keeps its own history and remote repository.
-
 ## Product Capabilities
 
 - **Multi-vendor marketplace** - multiple sellers can operate shops and sell products through one customer storefront
@@ -11,7 +9,7 @@ This repository is the parent workspace for the Arc project. The application cod
 - **Product recommendations** - storefront flows surface best sellers, trending products, recently viewed items, and related products
 - **Product reviews** - customers can rate purchased products, write reviews, and upload review images
 - **Cart and checkout** - customers can manage carts, apply coupons, choose shipping, and place cart or buy-now orders
-- **Payments and refunds** - customers can pay for orders and sellers can handle refunds when needed
+- **Payments and refunds** - customers can complete purchases and request refunds when needed
 - **Customer account management** - users can manage profiles, addresses, notifications, orders, reviews, and guest order tracking
 - **Notifications** - customers and sellers can receive commerce events such as order updates, shipment changes, support activity, and low-stock alerts
 - **Seller shop operations** - sellers can create shops, manage products, publish listings, update inventory, and configure shipping
@@ -25,6 +23,13 @@ For technical implementation details, see:
 
 - [Backend implemented patterns and capabilities](./apps/api/README.md#implemented-patterns-and-capabilities)
 - [Frontend implemented patterns and capabilities](./apps/web/README.md#implemented-patterns-and-capabilities)
+
+## Workspace Structure
+
+This repository is the parent workspace for the Arc project. The application code lives in separate Git submodules so each app keeps its own history and remote repository.
+
+- [apps/web](./apps/web) - Nuxt monorepo for the customer storefront, seller app, and shared frontend packages
+- [apps/api](./apps/api) - NestJS backend API, database migrations, seed data, workers, and local infrastructure
 
 ## Tech stack
 
@@ -49,12 +54,6 @@ For technical implementation details, see:
 - [Stripe](https://stripe.com/) - Payments
 - [Typescript](https://www.typescriptlang.org/) - Static type checking
 - [Zod](https://zod.dev/) - Schema validation
-
-## Features
-- Marketplace web application
-- Separate frontend and backend repositories managed as Git submodules
-- Frontend app in [apps/web](./apps/web)
-- Backend app in [apps/api](./apps/api)
 
 ## Repositories
 - Parent workspace: [dauphaihau-arc/arc](https://github.com/dauphaihau-arc/arc)
