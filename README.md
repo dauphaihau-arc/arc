@@ -1,6 +1,20 @@
 # Arc
 A ecommerce marketplace workspace where people come together to make, sell, buy, and collect unique items.
 
+![Arc storefront homepage](./assets/screenshots/storefront-homepage.png)
+[See more storefront screenshots](./docs/storefront-screenshots.md)
+
+![Arc seller dashboard](./assets/screenshots/seller-dashboard.png)
+[See more seller screenshots](./docs/seller-screenshots.md)
+
+## Demo
+| App | URL |
+| --- | --- |
+| Storefront | https://arc.hautran.me |
+| Seller | https://seller.arc.hautran.me |
+| API Docs | https://api.arc.hautran.me/docs |
+- [Demo guide](./docs/demo-guide.md) - cross-environment demo accounts, smoke checks, and test flows.
+
 ## Product Capabilities
 
 - **Multi-vendor marketplace** - multiple sellers can operate shops and sell products through one customer storefront
@@ -61,6 +75,8 @@ cd arc
 git submodule update --init --recursive
 ```
 
+- [Local setup](./docs/local-setup.md) - install dependencies, seed demo data, and run the API, storefront, and seller app locally.
+
 ## Contact
 
-For any inquiries or feedback, feel free to contact [me](mailto:dauphaihau@gmail.com).
+For any inquiries or feedback, feel free to contact [me](mailto:hi@hautran.me).
