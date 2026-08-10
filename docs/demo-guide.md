@@ -23,7 +23,7 @@ Use these accounts on seller site.
 | `bulk.catalog@example.com` | Bulk Catalog Lab | SGD | Large table testing: product list, coupon list, pagination, filtering, sorting, and CRUD flows. Has 50 draft products and 50 coupons. |
 | `maker.olive@example.com`<br>`maker.mason@example.com`<br>`maker.sage@example.com` | Olive Atelier, Reed Workshop, Sage Studio | USD, EUR, JPY | Dashboard overview, revenue/order widgets, active product state, messages, reviews, and normal seller smoke checks. |
 | `maker.sage@example.com`<br>`maker.juno@example.com` | Sage Studio, Juno Console | JPY, AUD | Currency-specific testing. Use Sage Studio for JPY formatting and zero-decimal currency assumptions; use Juno Console as a second non-USD currency check. |
-| `maker.mason@example.com`<br>`maker.olive@example.com`<br>`maker.juno@example.com` | Reed Workshop, Olive Atelier, Juno Console | EUR, USD, AUD | Messages, reviews, and order checks across shops. Reed Workshop and Olive Atelier have stronger review coverage; Juno Console has buyer message coverage. |
+| `maker.mason@example.com`<br>`maker.olive@example.com`<br>`maker.juno@example.com` | Reed Workshop, Olive Atelier, Juno Console | EUR, USD, AUD | Messages, reviews, and order checks across shops. Each shop has 10 seeded buyer conversations; Reed Workshop and Olive Atelier have stronger review coverage. |
 | `maker.rowan@example.com`<br>`maker.signal@example.com`<br>`maker.prompt@example.com`<br>`maker.benedict@example.com` | NoirVember / Rowan Menswear, Signal Foundry, Prompt Parlor, Benedict Mercy | USD | Order export test suite. |
 
 ### Storefront Customer Accounts

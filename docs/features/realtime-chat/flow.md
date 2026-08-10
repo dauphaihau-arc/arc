@@ -1,6 +1,6 @@
 # Realtime Chat Flow
 
-This document captures the user-visible and cross-surface flow for realtime chat delivery.
+This document captures the user-visible and cross-surface flow for realtime chat delivery across storefront and seller chat surfaces.
 
 For feature scope, event shape, and implementation file references, see [README.md](README.md).
 
@@ -13,8 +13,15 @@ sequenceDiagram
     participant Realtime as Realtime Gateway
     participant Chat as Chat API
     participant Delivery as Realtime Delivery
+    participant Seller as Seller Inbox
 
-    User->>Storefront: Open a chat conversation
+    User->>Storefront: Open or create a chat conversation
+    Storefront->>Chat: Create or get buyer-shop conversation
+    alt Product context is provided
+        Chat->>Chat: Create product_reference message if needed
+        Chat-->>Delivery: Publish product reference message
+    end
+    Chat-->>Storefront: Conversation summary
     Storefront->>Realtime: Connect to /ws with session cookie
     alt Session is invalid
         Realtime-->>Storefront: Unauthorized connection error
@@ -36,14 +43,72 @@ sequenceDiagram
     Chat-->>Storefront: Message created
     Chat-->>Delivery: New chat message is available
     Delivery-->>Storefront: Push new message event
+    Delivery-->>Seller: Push new message event
 ```
 
 Summary:
 
-- the storefront uses REST for message creation and websocket delivery for realtime updates
+- storefront and seller surfaces use REST for authoritative state and websocket delivery for realtime updates
+- storefront opens a buyer-shop conversation through REST before subscribing to its realtime room
+- product context is sent as a generated `product_reference` message, not as a conversation-level product field
 - the websocket connection uses the same session boundary as authenticated API requests
 - conversation subscription is authorized before a client can receive conversation-scoped events
 - newly created messages are pushed to subscribed clients without waiting for polling
+
+## Conversation Open And Product Reference
+
+```mermaid
+sequenceDiagram
+    actor Buyer
+    participant Storefront
+    participant Chat as Chat API
+    participant Delivery as Realtime Delivery
+    participant Seller as Seller Inbox
+
+    Buyer->>Storefront: Open chat from shop or product detail
+    Storefront->>Chat: Create or get conversation
+    alt Product id is provided and not already referenced
+        Chat->>Chat: Store product_reference message with snapshot metadata
+        Chat->>Chat: Update last_message and unread counts
+        Chat-->>Delivery: Publish chat.message.created
+        Delivery-->>Seller: Push product_reference message
+    else Product is absent or already referenced
+        Chat->>Chat: Reuse existing conversation without duplicate product reference
+    end
+    Chat-->>Storefront: Conversation summary
+```
+
+Summary:
+
+- a buyer has one conversation per shop, even when opening chat from multiple products
+- product context is preserved as a message with `message_type: product_reference`
+- duplicate product reference messages are avoided for the same conversation and product
+- the generated product reference increments the seller unread count and becomes the latest message
+
+## Message History Pagination
+
+```mermaid
+sequenceDiagram
+    participant Client as Storefront or Seller
+    participant Chat as Chat API
+
+    Client->>Chat: List messages with limit
+    Chat-->>Client: Latest window in ascending display order
+    alt Older messages exist
+        Chat-->>Client: page_info.has_more_before=true and before_cursor
+        Client->>Chat: List messages with before cursor
+        Chat-->>Client: Older window in ascending display order
+    else No older messages exist
+        Chat-->>Client: page_info.has_more_before=false
+    end
+```
+
+Summary:
+
+- message history uses cursor pagination instead of page numbers
+- `before` points to the oldest loaded message window boundary
+- clients merge pages, deduplicate by message id, and keep display order ascending
+- conversation list pagination remains page-based
 
 ## Connection Authentication
 
@@ -113,14 +178,14 @@ Summary:
 ```mermaid
 sequenceDiagram
     actor Sender
-    participant SenderWeb as Sender Storefront
+    participant SenderWeb as Sender Client
     participant Chat as Chat API
     participant Delivery as Realtime Delivery
-    participant RecipientWeb as Recipient Storefront
+    participant RecipientWeb as Recipient Client
 
     Sender->>SenderWeb: Send message
     SenderWeb->>Chat: Create message
-    Chat->>Chat: Store message and update conversation summary
+    Chat->>Chat: Store message, latest preview, read marker, and unread counts
     Chat-->>SenderWeb: Message created
     Chat-->>Delivery: Publish new message
     Delivery-->>SenderWeb: Push message event
@@ -130,8 +195,27 @@ sequenceDiagram
 Summary:
 
 - REST remains the authoritative write path for sending messages
-- realtime delivery fans out the created message after the write succeeds
-- both sender and recipient surfaces can receive the same created-message event
+- realtime delivery fans out the created message after the write succeeds, including `message_type` and metadata
+- sender and recipient surfaces can receive the same created-message event
+- clients patch active message lists, conversation previews, and unread badges until the next REST refetch
+
+## Mark Conversation Read
+
+```mermaid
+sequenceDiagram
+    participant Client as Storefront or Seller
+    participant Chat as Chat API
+
+    Client->>Chat: Mark conversation read
+    Chat->>Chat: Update actor-side read timestamp and unread count
+    Chat-->>Client: Updated conversation summary
+```
+
+Summary:
+
+- storefront clears `buyer_unread_count` for the buyer side
+- seller clears `seller_unread_count` for the seller side
+- read state remains REST-authoritative; websocket events only move counts forward for new messages
 
 ## Cross-Instance Delivery
 
