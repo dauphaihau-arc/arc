@@ -54,6 +54,7 @@ The client is responsible for:
 - using websocket events for incremental realtime updates
 - deduplicating messages received from both REST and websocket paths
 - patching conversation previews and unread counts from created-message events until the next authoritative refetch
+- refetching message history after product-reference realtime events so product-card pricing comes from the REST read model
 
 ## Authorization Model
 
@@ -110,6 +111,7 @@ Message history uses cursor pagination:
 - request older messages with `before=<page_info.before_cursor>`
 - responses return messages in ascending display order
 - `page_info.has_more_before` tells the client whether another older page exists
+- product-reference message responses may overlay stored snapshot money with viewer-specific display pricing
 
 ```json
 {
@@ -183,6 +185,16 @@ For product references, the API emits a normal `chat.message.created` event with
 }
 ```
 
+Product-reference snapshot metadata is fallback context, not the final pricing authority for rendered product cards.
+
+REST message reads are authoritative for product-card display money:
+
+- storefront/buyer chat reads resolve product-card money using buyer presentment currency
+- seller/shop chat reads resolve product-card money using seller-authored base catalog pricing
+- order, payment, refund, and support workflows must use order money snapshots instead of live product-reference pricing
+
+The websocket event carries the newly created message quickly, including the stored snapshot metadata. Because that event is shared across buyer and seller recipients, clients must not treat event snapshot money as final viewer-specific display pricing. Product-reference realtime events should invalidate or refetch the active message history so the rendered card uses the REST-enriched message response.
+
 ## Why Both REST And WebSocket Are Used
 
 Chat clients typically use both:
@@ -202,6 +214,7 @@ WebSocket is responsible for:
 
 - pushing newly created messages without waiting for polling
 - keeping active message panes, conversation previews, and unread badges current between REST refetches
+- triggering an authoritative REST refetch when a product-reference event needs viewer-specific product-card pricing
 
 Some clients may still keep periodic refetches as a fallback, but the websocket path is the low-latency update channel.
 
