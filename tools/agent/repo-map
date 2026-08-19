@@ -1,0 +1,267 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+TOPIC="${1:-}"
+
+print_usage() {
+  cat <<'USAGE'
+Usage: ./tools/agent/repo-map <topic>
+
+Topics:
+  checkout
+  product-import
+  multi-currency
+  realtime-chat
+  order-export
+  inventory
+  catalog
+
+Use this before broad code search when starting work on a known Arc feature.
+USAGE
+}
+
+section() {
+  printf '\n%s\n' "$1"
+  printf '%s\n' "----------------------------------------"
+}
+
+items() {
+  for item in "$@"; do
+    if [[ -e "$ROOT_DIR/$item" ]]; then
+      printf '  %s\n' "$item"
+    else
+      printf '  %s (missing)\n' "$item"
+    fi
+  done
+}
+
+commands() {
+  for command in "$@"; do
+    printf '  %s\n' "$command"
+  done
+}
+
+common_api_guidance() {
+  section "API guidance"
+  items \
+    "apps/api/api/AGENTS.md" \
+    "apps/api/api/agent-skills/README.md" \
+    "apps/api/api/agent-skills/src-structure.md" \
+    "apps/api/api/agent-skills/testing.md"
+}
+
+common_web_guidance() {
+  section "Web guidance"
+  items \
+    "apps/web/AGENTS.md" \
+    "apps/web/agent-skills/README.md" \
+    "apps/web/agent-skills/src-structure.md" \
+    "apps/web/agent-skills/testing.md"
+}
+
+case "$TOPIC" in
+  "")
+    print_usage
+    ;;
+
+  checkout)
+    section "Topic"
+    echo "  checkout"
+    section "Docs"
+    items \
+      "docs/features/checkout/README.md" \
+      "docs/features/checkout/flow.md" \
+      "apps/api/api/docs/features/checkout-quote-design.md" \
+      "apps/api/api/docs/features/checkout-transactional-outbox.md" \
+      "apps/api/api/docs/adrs/001-adopt-canonical-catalog-pricing-with-quote-based-multi-currency-checkout.md"
+    section "API"
+    items \
+      "apps/api/api/src/domains/checkout" \
+      "apps/api/api/src/domains/cart" \
+      "apps/api/api/src/domains/order" \
+      "apps/api/api/src/integrations/payment"
+    section "Web"
+    items \
+      "apps/web/apps/storefront/src/domains/checkout" \
+      "apps/web/apps/storefront/src/domains/cart" \
+      "apps/web/apps/storefront/src/app/pages/checkout" \
+      "apps/web/apps/storefront/src/app/pages/cart"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify storefront"
+    ;;
+
+  product-import)
+    section "Topic"
+    echo "  product-import"
+    section "Domain context"
+    items \
+      "CONTEXT-MAP.md" \
+      "CONTEXT.md"
+    section "Docs"
+    items \
+      "docs/features/import-product-design/README.md" \
+      "docs/features/import-product-design/flow.md" \
+      "apps/api/api/docs/adrs/004-product-xlsx-import.md"
+    section "API"
+    items \
+      "apps/api/api/src/domains/product/app/product-import" \
+      "apps/api/api/src/domains/product/app/use-cases/start-product-import" \
+      "apps/api/api/src/domains/product/app/use-cases/download-product-import-template" \
+      "apps/api/api/src/domains/product/app/use-cases/download-product-import-report" \
+      "apps/api/api/src/domains/product/jobs/process-product-import.job.ts"
+    section "Web"
+    items \
+      "apps/web/apps/seller/src/domains/shop/product" \
+      "apps/web/apps/seller/test/product-import-preview.test.ts"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "cd apps/api/api && pnpm test -- product-import" \
+      "cd apps/web && pnpm test:seller" \
+      "./scripts/verify architecture"
+    ;;
+
+  multi-currency)
+    section "Topic"
+    echo "  multi-currency"
+    section "Docs"
+    items \
+      "docs/features/multi-currency-pricing/README.md" \
+      "docs/features/multi-currency-pricing/flow.md" \
+      "apps/api/api/docs/features/multi-currency/design.md" \
+      "apps/api/api/docs/features/multi-currency/variant-prices-table.md" \
+      "apps/api/api/docs/adrs/001-adopt-canonical-catalog-pricing-with-quote-based-multi-currency-checkout.md"
+    section "API"
+    items \
+      "apps/api/api/src/integrations/currency" \
+      "apps/api/api/src/domains/product/app/services/resolved-storefront-price.service.ts" \
+      "apps/api/api/src/domains/product/app/services/storefront-indexed-price-projection.service.ts" \
+      "apps/api/api/src/domains/checkout"
+    section "Web"
+    items \
+      "apps/web/apps/storefront/src/domains/market" \
+      "apps/web/apps/seller/src/domains/market" \
+      "apps/web/apps/storefront/src/app/components/market-preferences"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify web"
+    ;;
+
+  realtime-chat)
+    section "Topic"
+    echo "  realtime-chat"
+    section "Docs"
+    items \
+      "docs/features/realtime-chat/README.md" \
+      "docs/features/realtime-chat/flow.md"
+    section "API"
+    items \
+      "apps/api/api/src/domains/chat" \
+      "apps/api/api/src/platform/ws" \
+      "apps/api/api/src/integrations/queue"
+    section "Web"
+    items \
+      "apps/web/apps/storefront/src/app/components/chat" \
+      "apps/web/apps/storefront/src/shared/realtime/chat-events.client.ts" \
+      "apps/web/apps/seller/src/domains/shop/chat" \
+      "apps/web/apps/seller/src/app/pages/messages"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify web"
+    ;;
+
+  order-export)
+    section "Topic"
+    echo "  order-export"
+    section "Docs"
+    items \
+      "docs/features/export-order-design/README.md" \
+      "docs/features/export-order-design/flow.md" \
+      "apps/api/api/docs/adrs/003-shop-order-csv-export.md" \
+      "apps/api/api/docs/features/shop-order-export-glossary.md"
+    section "API"
+    items \
+      "apps/api/api/src/domains/order" \
+      "apps/api/api/src/domains/shop"
+    section "Web"
+    items \
+      "apps/web/apps/seller/src/domains/shop/order" \
+      "apps/web/apps/seller/src/app/pages/orders"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify seller"
+    ;;
+
+  inventory)
+    section "Topic"
+    echo "  inventory"
+    section "Docs"
+    items \
+      "apps/api/api/docs/features/inventory-reservation-go-service.md"
+    section "API"
+    items \
+      "apps/api/inventory-service" \
+      "apps/api/api/src/domains/product" \
+      "apps/api/api/src/domains/checkout" \
+      "apps/api/api/src/domains/order"
+    section "Verify"
+    commands \
+      "./scripts/verify inventory" \
+      "./scripts/verify api"
+    ;;
+
+  catalog)
+    section "Topic"
+    echo "  catalog"
+    section "Domain context"
+    items \
+      "CONTEXT-MAP.md" \
+      "CONTEXT.md"
+    section "Docs"
+    items \
+      "apps/api/api/docs/adrs/002-adopt-projected-catalog-read-model-with-pluggable-search.md" \
+      "apps/api/api/docs/features/public-product-facets.md" \
+      "apps/api/api/docs/features/public-product-recommendations.md" \
+      "apps/api/api/docs/features/product-images.md" \
+      "apps/api/api/docs/features/product-state-lifecycle.md"
+    section "API"
+    items \
+      "apps/api/api/src/domains/product" \
+      "apps/api/api/src/domains/category" \
+      "apps/api/api/src/domains/shop"
+    section "Web"
+    items \
+      "apps/web/apps/storefront/src/domains/product" \
+      "apps/web/apps/storefront/src/domains/category" \
+      "apps/web/apps/storefront/src/app/pages/c" \
+      "apps/web/apps/seller/src/domains/shop/product"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify web"
+    ;;
+
+  *)
+    echo "Unknown repo-map topic: $TOPIC" >&2
+    echo >&2
+    print_usage >&2
+    exit 2
+    ;;
+esac

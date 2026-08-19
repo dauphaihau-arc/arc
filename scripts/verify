@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TARGET="${1:-all}"
+
+run_api() {
+  cd "$ROOT_DIR/apps/api/api"
+  pnpm check
+}
+
+run_architecture() {
+  cd "$ROOT_DIR/apps/api/api"
+  pnpm check:architecture
+}
+
+run_web() {
+  cd "$ROOT_DIR/apps/web"
+  pnpm check
+}
+
+run_seller() {
+  cd "$ROOT_DIR/apps/web"
+  pnpm check:seller
+}
+
+run_storefront() {
+  cd "$ROOT_DIR/apps/web"
+  pnpm check:storefront
+}
+
+run_inventory() {
+  cd "$ROOT_DIR/apps/api/inventory-service"
+  go test ./...
+}
+
+case "$TARGET" in
+  all)
+    run_api
+    run_web
+    run_inventory
+    ;;
+  api)
+    run_api
+    ;;
+  architecture)
+    run_architecture
+    ;;
+  web)
+    run_web
+    ;;
+  seller)
+    run_seller
+    ;;
+  storefront)
+    run_storefront
+    ;;
+  inventory)
+    run_inventory
+    ;;
+  *)
+    cat >&2 <<USAGE
+Usage: ./scripts/verify [all|api|architecture|web|seller|storefront|inventory]
+USAGE
+    exit 2
+    ;;
+esac
