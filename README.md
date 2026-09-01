@@ -1,10 +1,10 @@
 # Arc
 A ecommerce marketplace workspace where people come together to make, sell, buy, and collect unique items.
 
-![Arc storefront homepage](./assets/screenshots/storefront-homepage.png)
+![Arc storefront homepage](./assets/screenshots/storefront-homepage.png?v=fcd84f15d5d2)
 [See more storefront screenshots](./docs/screenshots/storefront.md)
 
-![Arc seller dashboard](./assets/screenshots/seller-dashboard.png)
+![Arc seller dashboard](./assets/screenshots/seller-dashboard.png?v=5fa3ec7558d3)
 [See more seller screenshots](./docs/screenshots/seller.md)
 
 ## Demo
