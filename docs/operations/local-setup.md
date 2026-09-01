@@ -22,9 +22,9 @@ git submodule update --init --recursive
 
 | App | URL |
 | --- | --- |
-| API | `http://localhost:3000` |
-| Storefront | `http://localhost:4000` |
-| Seller | `http://localhost:4001` |
+| API | `http://localhost:4000` |
+| Storefront | `http://localhost:4001` |
+| Seller | `http://localhost:4002` |
 | Grafana | `http://localhost:3001` |
 
 ## API Setup
@@ -56,10 +56,10 @@ just api-worker-up-observability
 
 Useful local endpoints after startup:
 
-- API docs: `http://localhost:3000/docs`
-- OpenAPI JSON: `http://localhost:3000/docs/openapi.json`
-- Readiness: `http://localhost:3000/health/ready`
-- Queues: `http://localhost:3000/ops/queues`
+- API docs: `http://localhost:4000/docs`
+- OpenAPI JSON: `http://localhost:4000/docs/openapi.json`
+- Readiness: `http://localhost:4000/health/ready`
+- Queues: `http://localhost:4000/ops/queues`
 - Grafana: `http://localhost:3001`
 
 ## Web Setup
@@ -87,7 +87,7 @@ cd apps/web
 pnpm dev:storefront
 ```
 
-Open `http://localhost:4000`.
+Open `http://localhost:4001`.
 
 Start the seller app in a separate terminal:
 
@@ -96,7 +96,7 @@ cd apps/web
 pnpm dev:seller
 ```
 
-Open `http://localhost:4001`.
+Open `http://localhost:4002`.
 
 ## Seeded Local Accounts
 
