@@ -12,10 +12,12 @@ Topics:
   checkout
   product-import
   multi-currency
+  coupon
   realtime-chat
   order-export
   inventory
   catalog
+  architecture
 
 Use this before broad code search when starting work on a known Arc feature.
 USAGE
@@ -256,6 +258,71 @@ case "$TOPIC" in
     commands \
       "./scripts/verify api" \
       "./scripts/verify web"
+    ;;
+
+
+  coupon)
+    section "Topic"
+    echo "  coupon"
+    section "Domain context"
+    items \
+      "CONTEXT-MAP.md" \
+      "CONTEXT.md"
+    section "Docs"
+    items \
+      "docs/features/coupon-design/README.md" \
+      "docs/features/coupon-design/flow.md" \
+      "docs/features/coupon-design/flows"
+    section "API"
+    items \
+      "apps/api/api/src/domains/coupon" \
+      "apps/api/api/src/domains/shop/app/use-cases/create-shop-coupon" \
+      "apps/api/api/src/domains/shop/app/use-cases/delete-shop-coupon" \
+      "apps/api/api/src/domains/shop/app/use-cases/bulk-delete-shop-coupons" \
+      "apps/api/api/src/domains/shop/app/use-cases/shop-coupon-catalog-projection.ts" \
+      "apps/api/api/src/domains/product/app/services/storefront-indexed-price-projection.service.ts" \
+      "apps/api/api/src/domains/product/jobs/project-shop-catalog-products.job.ts"
+    section "Web"
+    items \
+      "apps/web/packages/enums/src/coupon.ts" \
+      "apps/web/packages/schemas/src/coupon.schema.ts" \
+      "apps/web/apps/seller/src/app/pages/coupons" \
+      "apps/web/apps/seller/src/domains/shop/api/coupon" \
+      "apps/web/apps/seller/src/domains/shop/api/schemas/coupon" \
+      "apps/web/apps/seller/src/domains/shop/mutations/create-coupon.mutation.ts" \
+      "apps/web/apps/seller/src/domains/shop/mutations/delete-coupon.mutation.ts" \
+      "apps/web/apps/seller/src/domains/shop/mutations/bulk-delete-coupons.mutation.ts" \
+      "apps/web/apps/seller/src/domains/shop/queries/coupons.query.ts" \
+      "apps/web/apps/storefront/src/app/pages/cart/_components/add-remove-coupons.vue" \
+      "apps/web/apps/storefront/src/app/pages/checkout/_components/add-remove-promo-coupons.vue" \
+      "apps/web/apps/storefront/src/app/pages/orders/_components/shop-item/note-and-promo-coupons.vue"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify seller" \
+      "./scripts/verify storefront"
+    ;;
+  architecture)
+    section "Topic"
+    echo "  architecture"
+    section "Docs"
+    items \
+      "docs/architecture/harness-engineering.md" \
+      "CONTEXT-MAP.md" \
+      "docs/agents/domain.md" \
+      "docs/agents/issue-tracker.md"
+    section "Harness"
+    items \
+      "AGENTS.md" \
+      "tools/agent/repo-map" \
+      "scripts/verify" \
+      "apps/api/api/scripts/check-architecture.mjs" \
+      "apps/api/api/package.json"
+    section "Verify"
+    commands \
+      "./scripts/verify architecture"
     ;;
 
   *)
