@@ -242,7 +242,7 @@ case "$TOPIC" in
       "apps/api/api/docs/adrs/002-adopt-projected-catalog-read-model-with-pluggable-search.md" \
       "apps/api/api/docs/features/public-product-facets.md" \
       "apps/api/api/docs/features/public-product-recommendations.md" \
-      "apps/api/api/docs/features/product-images.md" \
+      "apps/api/api/docs/features/product-image-pipeline.md.md" \
       "apps/api/api/docs/features/product-state-lifecycle.md"
     section "API"
     items \
