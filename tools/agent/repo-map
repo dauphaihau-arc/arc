@@ -88,13 +88,16 @@ case "$TOPIC" in
       "apps/web/apps/storefront/src/domains/checkout" \
       "apps/web/apps/storefront/src/domains/cart" \
       "apps/web/apps/storefront/src/app/pages/checkout" \
-      "apps/web/apps/storefront/src/app/pages/cart"
+      "apps/web/apps/storefront/src/app/pages/cart" \
+      "apps/web/apps/storefront/e2e/checkout" \
+      "apps/web/apps/storefront/e2e/support/network.ts"
     common_api_guidance
     common_web_guidance
     section "Verify"
     commands \
       "./scripts/verify api" \
-      "./scripts/verify storefront"
+      "./scripts/verify storefront" \
+      "cd apps/web && pnpm --filter @arc/storefront exec playwright test --config ./playwright.config.ts e2e/checkout/card-pending.spec.ts --project=chromium"
     ;;
 
   product-import)
