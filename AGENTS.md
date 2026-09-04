@@ -42,7 +42,8 @@ files linked from `apps/web/agent-skills/README.md`.
 
 For known feature areas, use `./tools/agent/repo-map <topic>` before broad
 search. Available topics include `checkout`, `product-import`,
-`multi-currency`, `realtime-chat`, `order-export`, `inventory`, and `catalog`.
+`multi-currency`, `coupon`, `realtime-chat`, `order-export`, `inventory`,
+`catalog`, and `architecture`.
 
 ## Verification
 
