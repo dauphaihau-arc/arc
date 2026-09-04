@@ -14,20 +14,30 @@ sequenceDiagram
     Web->>Order: Create card order with quote_id
     Order->>Order: Persist local orders as CHECKOUT_PENDING
     Order->>Outbox: Persist checkout-session-requested event
-    Order-->>Web: checkout_pending and order ids
-    Web-->>Buyer: Show checkout preparation state
-    Worker->>Outbox: Claim event
-    Worker->>Payment: Create checkout session
-    Payment-->>Worker: Checkout session URL
-    Worker->>Order: Update orders to AWAITING_PAYMENT
-    Web->>Order: Poll session readiness
-    Order-->>Web: checkout_session_url
-    Web-->>Buyer: Redirect to payment provider
+    Order-->>Order: Commit local order transaction
+    Order->>Outbox: Try processing the event once inline
+    alt Checkout session ready within inline timeout
+        Outbox->>Payment: Create checkout session
+        Payment-->>Outbox: Checkout session URL
+        Outbox->>Order: Update orders to AWAITING_PAYMENT
+        Order-->>Web: checkout_session_url
+        Web-->>Buyer: Redirect to payment provider
+    else Checkout session still pending
+        Order-->>Web: checkout_pending and order ids
+        Web-->>Buyer: Keep checkout preparation state
+        Worker->>Outbox: Claim event or retry pending event
+        Worker->>Payment: Create checkout session
+        Payment-->>Worker: Checkout session URL
+        Worker->>Order: Update orders to AWAITING_PAYMENT
+        Web->>Order: Poll session readiness by order ids
+        Order-->>Web: checkout_session_url
+        Web-->>Buyer: Redirect to payment provider
+    end
 ```
 
 Summary:
 
-- this is the target flow described by the checkout transactional outbox design
-- card order creation can persist local orders as `CHECKOUT_PENDING` before the payment checkout session exists
-- the worker claims the outbox event, creates the payment-provider session, and updates orders to `AWAITING_PAYMENT`
-- the current storefront still expects `checkout_session_url` immediately, so adopting this flow requires an explicit frontend/API contract update
+- card order creation persists local orders as `CHECKOUT_PENDING` before the payment checkout session exists
+- after commit, the API tries to process the created checkout outbox event once inline so the normal fast path can still return `checkout_session_url`
+- if inline processing times out or the event is not ready, the response remains `checkout_pending` with order ids and the storefront polls readiness by order ids
+- the worker claims or retries pending checkout events, creates the payment-provider session, and updates orders to `AWAITING_PAYMENT`

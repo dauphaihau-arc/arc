@@ -64,9 +64,10 @@ Out of scope:
 6. API resolves checkout currency, totals, shipping, discounts, and item snapshots.
 7. API returns `quote_id`, quoted totals, quoted items, checkout currency, and expiration.
 8. Storefront submits order creation with `payment_type` and `quote_id`.
-9. For card payment, API returns a payment checkout session URL and storefront redirects externally.
-10. For cash payment, API returns created order shops and storefront routes to success.
-11. Success page displays created order shops and gives the buyer a view or track order action.
+9. For card payment, API commits local orders and a checkout outbox event, then tries to create the payment checkout session once inline.
+10. If the card checkout session is ready, storefront redirects externally; if it is pending for an authenticated buyer, storefront polls readiness by order ids until the session URL is available.
+11. For cash payment, API returns created order shops and storefront routes to success.
+12. Success page displays created order shops and gives the buyer a view or track order action.
 
 ## Checkout Modes
 
@@ -115,14 +116,14 @@ After cash order creation, the success page preserves guest email, ZIP, and orde
 
 ### Card Payment
 
-Current storefront behavior expects order creation to return `checkout_session_url` for card payment. The storefront redirects the buyer to that external URL.
+Card order creation uses a transactional outbox with an inline fast path:
 
-The API response schema also allows `checkout_pending`, which aligns with the target transactional outbox design where card checkout session creation can become asynchronous.
+- API persists local orders as `CHECKOUT_PENDING` and writes a checkout-session-requested outbox event in the same transaction.
+- After commit, API tries to process that outbox event once inline.
+- If the payment-provider session is ready within the inline timeout, the response includes `checkout_session_url` and storefront redirects immediately.
+- If the session is still pending, the response includes `checkout_pending: true` and `order_shops`; authenticated storefront checkout polls `/me/checkout/session/readiness?order_ids=...` until `checkout_session_url` is available.
 
-The frontend and API contract need one explicit product decision:
-
-- keep a synchronous facade that returns `checkout_session_url`
-- or adopt asynchronous card checkout preparation with a pending state and session-readiness polling
+Guest card checkout currently depends on the inline fast path; guest-safe readiness polling is not part of the current contract.
 
 ### Cash Payment
 
@@ -141,6 +142,7 @@ After order creation succeeds, the storefront stores returned order shops in che
 ### Loading
 
 - Create order button shows pending state while quote and order creation are in progress.
+- Authenticated card checkout keeps the create-order pending state while polling checkout session readiness.
 - Success page shows a loading state when resolving order shops by card checkout session id.
 - Success page shows a server wake-up state for transient `502`, `503`, or `504` responses while loading session order shops.
 
@@ -180,7 +182,8 @@ After order creation succeeds, the storefront stores returned order shops in che
 - Quote expires after review but before order creation.
 - Buyer changes selected cart items, quantities, promo codes, notes, or shipping inputs after quote creation.
 - Inventory is no longer available or reservation is released.
-- Card checkout session URL is missing from a synchronous card response.
+- Card checkout session URL is not ready before the inline checkout timeout.
+- Authenticated card checkout readiness polling times out before the worker creates a session.
 - Payment provider redirects back before success page can resolve order shops.
 - Guest buyer loses browser state after cash order creation.
 - Backend wakes up slowly while the success page resolves card order shops.
@@ -200,7 +203,7 @@ After order creation succeeds, the storefront stores returned order shops in che
 - Cart checkout uses `/checkout/cart/quote` then `/checkout/cart` for guest APIs, and the corresponding authenticated `me` order mutations for signed-in buyers.
 - Buy-now checkout uses `/checkout/buy-now/quote` then `/checkout/buy-now` for guest APIs, and the corresponding authenticated `me` order mutations for signed-in buyers.
 - Quote responses include `quote_id`, presentment currency, checkout currency, totals, expiration, and item snapshots.
-- Order responses may include `checkout_session_url`, `checkout_pending`, and created `order_shops`.
+- Order responses may include `checkout_session_url`, `checkout_pending`, and created `order_shops`; authenticated pending card checkout polls readiness by returned `order_shops[].id`.
 - Backend quote ownership is documented in [Checkout Quote Design](../../../apps/api/api/docs/features/checkout-quote-design.md).
 - Backend card side-effect durability is documented in [Transactional Outbox For Checkout](../../../apps/api/api/docs/features/checkout-transactional-outbox.md).
 - Pricing boundaries are documented in [Multi-Currency Pricing](../multi-currency-pricing/README.md).
@@ -212,7 +215,7 @@ After order creation succeeds, the storefront stores returned order shops in che
 - [ ] Authenticated checkout sends saved address identity during quote creation.
 - [ ] Guest checkout sends shipping address during quote creation and email during order creation.
 - [ ] Order creation sends `quote_id` and `payment_type`.
-- [ ] Card checkout redirects only when a checkout session URL is available, or shows an explicit pending state if asynchronous checkout is adopted.
+- [ ] Card checkout redirects when a checkout session URL is available; authenticated pending card checkout polls readiness by order ids before redirecting.
 - [ ] Cash checkout routes to success after order shops are returned.
 - [ ] Guest success path preserves enough lookup context for order tracking.
 - [ ] Quote-expired, cart-changed, stock-unavailable, and reservation-unavailable failures show specific recovery copy.

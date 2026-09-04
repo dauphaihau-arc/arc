@@ -12,6 +12,7 @@ sequenceDiagram
     participant Web as Storefront Web
     participant Quote as Checkout Quote API
     participant Order as Order Creation API
+    participant Outbox as Checkout Outbox
     participant Payment as Payment Gateway
 
     Buyer->>Web: Start cart or buy-now checkout
@@ -22,10 +23,20 @@ sequenceDiagram
     Quote-->>Web: quote_id and quoted totals
     Web->>Order: Create order with quote_id and payment_type
     alt Card payment
-        Order->>Payment: Create checkout session
-        Payment-->>Order: Checkout session URL
-        Order-->>Web: checkout_session_url
-        Web-->>Buyer: Redirect to payment provider
+        Order->>Outbox: Persist checkout-session-requested event
+        Order-->>Order: Commit local order transaction
+        Order->>Outbox: Try processing event inline
+        alt Session ready
+            Outbox->>Payment: Create checkout session
+            Payment-->>Outbox: Checkout session URL
+            Order-->>Web: checkout_session_url
+            Web-->>Buyer: Redirect to payment provider
+        else Session pending
+            Order-->>Web: checkout_pending and order ids
+            Web->>Order: Poll readiness by order ids
+            Order-->>Web: checkout_session_url
+            Web-->>Buyer: Redirect to payment provider
+        end
     else Cash payment
         Order-->>Web: Created order shops
         Web-->>Buyer: Show success page
@@ -37,7 +48,7 @@ Summary:
 - checkout has one shared boundary for cart and buy-now: the storefront creates a quote first, then creates orders from the returned `quote_id`
 - checkout quote creation owns checkout currency, totals, and item snapshots
 - order creation consumes `quote_id` plus `payment_type`
-- card payment redirects through a payment-provider checkout session
+- card payment uses a checkout outbox event with an inline fast path; authenticated pending responses are resolved by polling readiness with returned order ids
 - cash payment confirms after local order creation returns created order shops
 
 ## Main Flow With Inventory Service
@@ -49,7 +60,8 @@ sequenceDiagram
     participant Quote as Checkout Quote API
     participant Inventory as Inventory Service
     participant Order as Order Creation API
-    participant Outbox as Order Inventory Outbox
+    participant InventoryOutbox as Order Inventory Outbox
+    participant CheckoutOutbox as Checkout Outbox
     participant RabbitMQ
     participant Payment as Payment Gateway
 
@@ -74,15 +86,25 @@ sequenceDiagram
     alt Reservation is active
         Inventory-->>Order: valid ACTIVE reservation
         Order->>Order: Persist order shops
-        Order->>Outbox: Persist order.created inventory event
-        Outbox-->>RabbitMQ: Publish order.created
+        Order->>InventoryOutbox: Persist order.created inventory event
+        InventoryOutbox-->>RabbitMQ: Publish order.created
         RabbitMQ-->>Inventory: Deliver order.created
         Inventory->>Inventory: Mark reservation SOLD
         alt Card payment
-            Order->>Payment: Create checkout session
-            Payment-->>Order: Checkout session URL
-            Order-->>Web: checkout_session_url
-            Web-->>Buyer: Redirect to payment provider
+            Order->>CheckoutOutbox: Persist checkout-session-requested event
+            Order-->>Order: Commit local order transaction
+            Order->>CheckoutOutbox: Try processing event inline
+            alt Session ready
+                CheckoutOutbox->>Payment: Create checkout session
+                Payment-->>CheckoutOutbox: Checkout session URL
+                Order-->>Web: checkout_session_url
+                Web-->>Buyer: Redirect to payment provider
+            else Session pending
+                Order-->>Web: checkout_pending and order ids
+                Web->>Order: Poll readiness by order ids
+                Order-->>Web: checkout_session_url
+                Web-->>Buyer: Redirect to payment provider
+            end
         else Cash payment
             Order-->>Web: Created order shops
             Web-->>Buyer: Show success page
@@ -100,7 +122,9 @@ Summary:
 - quote creation calls `POST /inventory/reservations/quote` and stores the returned `reservationId` on the checkout quote
 - order creation validates the stored reservation through `POST /inventory/reservations/validate` before persisting order shops
 - NestJS records an `order.created` inventory event in the order inventory outbox after quote-backed orders are created
-- the outbox publisher publishes `order.created` through RabbitMQ, and `inventory-service` consumes it to transition the reservation to `SOLD`
+- card checkout records a checkout-session-requested outbox event; API attempts one inline post-commit processing pass before returning `checkout_pending`
+- if card checkout remains pending for an authenticated buyer, storefront polls readiness by order ids until the payment checkout session URL is available
+- the inventory outbox publisher publishes `order.created` through RabbitMQ, and `inventory-service` consumes it to transition the reservation to `SOLD`
 - if the remote reservation is missing, inactive, expired, released, or mismatched, checkout returns the reservation-unavailable recovery path
 
 ## Detailed Flows
