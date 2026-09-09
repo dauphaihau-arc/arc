@@ -1,6 +1,6 @@
-# Arc Seller Catalog
+# Arc Product Imports
 
-This context describes seller-owned product catalog management for Arc, including product drafts and bulk XLSX product imports.
+Arc Product Imports covers asynchronous seller XLSX submissions that create Product drafts with row-level outcomes.
 
 ## Language
 
