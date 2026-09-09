@@ -4,7 +4,7 @@
 
 Product Import lets a shop manager upload an XLSX file and create product drafts in bulk.
 
-V1 is intentionally narrow: it creates draft, non-variant products only, validates each Import Row independently, and returns an Import Report CSV with created and failed outcomes.
+V1 is intentionally narrow: it creates drafts without Product Options, validates each Import Row independently, and returns an Import Report CSV with created and failed outcomes. Each created Product has one Default Product Variant with zero selections and one linked Inventory Item.
 
 Product Import is seller-owned catalog maintenance. It is not a product publishing workflow, product update workflow, Image Import pipeline, category management tool, or marketplace-wide catalog ingestion system.
 
@@ -28,7 +28,7 @@ In scope for v1:
 - Template Validation before queueing import work.
 - Row Validation during import processing.
 - Draft-only Import Draft Creation.
-- One Import Row creates one non-variant product draft.
+- One Import Row creates one no-option Product draft with a Default Product Variant and its Inventory Item.
 - Import Report CSV download.
 - Active import progress and result UI.
 
@@ -37,15 +37,13 @@ Out of scope for v1:
 - CSV upload.
 - Product publishing during import.
 - Updating existing products by SKU.
-- Variants or multiple inventory rows per product.
+- Configurable option matrices or multiple Inventory Items per Product.
 - Image Import.
 - Creating missing categories.
 - Import History UI.
 - Import Completion Notification.
 - Column mapping.
 - Import options such as skip, update, or create duplicate.
-
-## System Context
 
 ## System Context
 
@@ -97,7 +95,7 @@ Optional columns:
 Backend-derived fields:
 
 - `currency = shop.currency`
-- `variant_type = none`
+- No Product Options; one Default Product Variant with zero selections and one linked Inventory Item.
 - `state = draft`
 
 ## State Model
@@ -135,6 +133,7 @@ Job summary fields:
 - Row Validation failures affect only the invalid Import Row.
 - SKU Conflict fails affected rows instead of updating existing products.
 - Valid rows create drafts through existing product application use cases, not direct persistence writes.
+- Imported price, stock, and SKU belong to the Default Product Variant's Inventory Item. The template does not accept variant IDs or option matrices.
 - Import Request Idempotency prevents duplicate Product Import Jobs.
 - Row Import Attempt tracking prevents duplicate draft creation when worker processing is retried.
 - Import Source Files and Import Reports are private artifacts exposed only through authorized API endpoints.
@@ -154,5 +153,5 @@ Job summary fields:
 ## Related Documents
 
 - [Flow](flow.md)
-- [Import Products Spec](../import-product-spec.md)
+- [Product Variant Design](../product-variant-design/README.md)
 - [ADR-004: Use Draft-Only Asynchronous XLSX Product Import](../../../apps/api/api/docs/adrs/004-product-xlsx-import.md)

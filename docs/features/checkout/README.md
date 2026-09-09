@@ -176,6 +176,10 @@ After order creation succeeds, the storefront stores returned order shops in che
 - Expired quotes cannot create orders.
 - Cart checkout order creation must reject cart changes that invalidate the quoted selection.
 - Card checkout must not mark success until created orders can be resolved from payment session or local order state.
+- Every selected Inventory Item references a Product Variant, including a zero-selection Default Product Variant for a no-option Product.
+- Reservations remain attached to their original inventory identities. A seller configuration change that supersedes reserved inventory is rejected; it cannot silently reassign reservations to replacement combinations.
+- Current catalog label edits do not rewrite purchase-time selected-option labels in confirmed Order Item Snapshots. Structural replacement must retain historical inventory references.
+- Current Product, Product Variant, and inventory eligibility remains authoritative; a projected option matrix does not itself authorize a purchase.
 
 ## Edge Cases
 
@@ -207,6 +211,7 @@ After order creation succeeds, the storefront stores returned order shops in che
 - Backend quote ownership is documented in [Checkout Quote Design](../../../apps/api/api/docs/features/checkout-quote-design.md).
 - Backend card side-effect durability is documented in [Transactional Outbox For Checkout](../../../apps/api/api/docs/features/checkout-transactional-outbox.md).
 - Pricing boundaries are documented in [Multi-Currency Pricing](../multi-currency-pricing/README.md).
+- Seller transformation and reservation boundaries are documented in [Product Variant Design](../product-variant-design/README.md).
 
 ## Acceptance Criteria
 

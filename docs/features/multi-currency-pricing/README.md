@@ -6,7 +6,7 @@ Multi-Currency Pricing defines how ARC owns, presents, quotes, stores, and charg
 
 The feature keeps seller-authored catalog prices separate from buyer-facing presentment currency and backend-owned checkout currency. This prevents storefront display, checkout, orders, and payment providers from becoming competing pricing authorities.
 
-For lifecycle examples, see [flow.md](flow.md). For quote lifecycle details, see [checkout-quote-design.md](../../../apps/api/api/docs/checkout-quote-design.md). For field-level catalog price semantics, see [variant-prices-table.md](../../../apps/api/api/docs/multi-currency/variant-prices-table.md).
+For lifecycle examples, see [flow.md](flow.md). For quote lifecycle details, see [checkout-quote-design.md](../../../apps/api/api/docs/features/checkout-quote-design.md). For field-level catalog price semantics, see [variant-prices-table.md](../../../apps/api/api/docs/features/multi-currency/variant-prices-table.md).
 
 ## Goal
 
@@ -51,6 +51,8 @@ Rules:
 - optional market override prices may exist for specific markets
 - catalog prices are not derived from cart, checkout, order, or payment state
 - catalog pricing is the source for merchandise pricing before quote creation
+- each Inventory Item belongs to a Product Variant, including the Default Product Variant of a no-option Product
+- seller configuration edits commit base-price changes atomically with their option, lifecycle, and inventory changes; they do not use a separate per-row pricing endpoint
 
 ### Presentment Currency
 
@@ -204,6 +206,7 @@ If payment providers recalculate totals, the system loses its single source of t
 ## Related Documents
 
 - [Flow](flow.md)
-- [Variant Prices Table](../../../apps/api/api/docs/multi-currency/variant-prices-table.md)
-- [Checkout Quote Design](../../../apps/api/api/docs/checkout-quote-design.md)
+- [Product Variant Design](../product-variant-design/README.md)
+- [Variant Prices Table](../../../apps/api/api/docs/features/multi-currency/variant-prices-table.md)
+- [Checkout Quote Design](../../../apps/api/api/docs/features/checkout-quote-design.md)
 - [ADR-001: Canonical Catalog Pricing With Quote-Based Multi-Currency Checkout](../../../apps/api/api/docs/adrs/001-adopt-canonical-catalog-pricing-with-quote-based-multi-currency-checkout.md)
