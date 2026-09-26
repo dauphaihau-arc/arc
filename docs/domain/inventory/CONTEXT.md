@@ -8,6 +8,10 @@ Arc Inventory covers stable seller stock identities, SKU ownership, physical qua
 The seller-owned stock identity for one Product Variant, including a Default Product Variant when the Product has no Product Options. It remains stable across quantity and SKU changes.
 _Avoid_: Inventory Row, Stock Record
 
+**Stock Pool**:
+The internal accounting source that holds one Inventory Item's quantities. Seller Fulfillment uses exactly one default seller Stock Pool per Inventory Item; it is not a seller-managed location and carries no Warehouse identity.
+_Avoid_: Location, Warehouse, Inventory Item
+
 **SKU**:
 The seller-defined identifier of an Inventory Item. It is unique among non-removed Inventory Items in a shop and may be reused after removal.
 _Avoid_: Product Code, Variant Code
@@ -19,6 +23,10 @@ _Avoid_: Stock, Available Stock
 **Reserved Quantity**:
 The units of an Inventory Item held by active Checkout Reservations and unavailable to new buyers.
 _Avoid_: Held Stock
+
+**Checkout Reservation**:
+The Inventory hold a buyer places against an Inventory Item's default seller Stock Pool while completing purchase. It is not assumed active after consumption.
+_Avoid_: Fulfillment Allocation, Reserved Quantity
 
 **Available Quantity**:
 The non-negative units of an Inventory Item eligible for a new Checkout Reservation after accounting for Reserved Quantity.
@@ -42,8 +50,14 @@ _Avoid_: Inventory Deletion
 
 ## Relationships
 
+- Inventory remains the authority for stock quantities, reservations, and movements; Fulfillment references Inventory stock identities for physical execution without redefining On-hand Quantity, Reserved Quantity, or Available Quantity.
 - An Inventory Item represents one Product Variant, including a Default Product Variant for a Product with no Product Options.
 - An Inventory Item retains its identity across quantity and SKU changes.
+- One Inventory Item has exactly one internal default seller Stock Pool. Seller-facing inventory is one ordinary quantity per Product Variant.
+- A Stock Pool does not create a new Inventory Item, Product Variant, or SKU identity, and sellers never manage Stock Pools directly.
+- Product Variant Structure Expansion and Collapse do not transfer, sum, or multiply On-hand Quantity.
+- A Checkout Reservation holds quantity in the Inventory Item's default seller Stock Pool; confirmed-order fulfillment commits no separate Stock Pool quantity.
+- Remote movement and reservation identity is scoped to the default seller Stock Pool.
 - Renaming a Product Variant does not create a new Inventory Item or move On-hand Quantity.
 - SKU is unique among non-removed Inventory Items in one shop.
 - An Inventory Item may have no SKU; SKU uniqueness applies only to present SKUs on non-removed Inventory Items in one shop.
@@ -67,3 +81,4 @@ _Avoid_: Inventory Deletion
 - "SKU validation" means rejecting duplicate present SKUs among non-removed Inventory Items; SKU is optional unless a specific workflow says otherwise.
 - "Reset stock to zero" during Product Variant Structure Expansion means generated Inventory Items default to On-hand Quantity `0`; it does not zero or distribute the superseded Inventory Item's On-hand Quantity.
 - "Rename variant" means correcting Product Variant labels and keeping the same Inventory Item, not converting physical stock.
+- A Stock Pool is not an Inventory Item or a Product Variant; it does not multiply seller-owned stock identity.
