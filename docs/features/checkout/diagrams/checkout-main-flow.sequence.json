@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Checkout Main Flow",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [1640, 820],
+    "views": [
+      { "id": "quote-boundary", "label": "Quote boundary", "focus": ["buyer", "web", "quote"], "note": "Cart and buy-now both create a backend-owned quote before any order exists." },
+      { "id": "card-session", "label": "Card payment session", "focus": ["order", "outbox", "payment", "web"], "note": "One inline processing pass, then a pending checkout that the storefront polls." },
+      { "id": "cash-close", "label": "Cash payment", "focus": ["order", "web", "buyer"], "note": "Cash confirms after local order creation returns created order shops." }
+    ]
+  },
+  "participants": [
+    { "id": "buyer", "type": "external", "label": "Buyer" },
+    { "id": "web", "type": "frontend", "label": "Storefront Web" },
+    { "id": "quote", "type": "backend", "label": "Checkout Quote API" },
+    { "id": "order", "type": "backend", "label": "Order Creation API" },
+    { "id": "outbox", "type": "messagebus", "label": "Checkout Outbox" },
+    { "id": "payment", "type": "external", "label": "Payment Gateway" }
+  ],
+  "segments": [
+    { "from": 196, "to": 272, "label": "Checkout quote" },
+    { "from": 296, "to": 352, "label": "Order creation" },
+    { "from": 380, "to": 520, "label": "Card payment: session" },
+    { "from": 548, "to": 652, "label": "Card payment: response" },
+    { "from": 680, "to": 737, "label": "Cash payment" }
+  ],
+  "messages": [
+    { "id": "buyer-input", "from": "buyer", "to": "web", "y": 160, "label": "Complete address, payment, review steps", "variant": "default" },
+    { "id": "create-quote", "from": "web", "to": "quote", "y": 216, "label": "Create checkout quote", "variant": "emphasis" },
+    { "id": "quote-result", "from": "quote", "to": "web", "y": 244, "label": "quote_id, totals, shops, expires_at", "variant": "return" },
+    { "id": "create-order", "from": "web", "to": "order", "y": 324, "label": "Create order with quote_id and payment_type", "variant": "emphasis", "note": "Reloads and validates the quote" },
+    { "id": "persist-session-event", "from": "order", "to": "outbox", "y": 408, "label": "Persist order.checkout-session-requested", "variant": "default" },
+    { "id": "process-inline", "from": "order", "to": "outbox", "y": 436, "label": "Try processing the event once inline", "variant": "default", "note": "1500 ms timeout" },
+    { "id": "create-session", "from": "outbox", "to": "payment", "y": 464, "label": "Create checkout session", "variant": "emphasis" },
+    { "id": "session-url", "from": "payment", "to": "outbox", "y": 492, "label": "Checkout session URL", "variant": "return", "note": "Orders move to awaiting_payment" },
+    { "id": "ready-response", "from": "order", "to": "web", "y": 576, "label": "checkout_session_url", "variant": "return", "note": "Otherwise checkout_pending and order ids" },
+    { "id": "poll-readiness", "from": "web", "to": "order", "y": 604, "label": "Poll readiness by order ids", "variant": "emphasis", "note": "Every second, up to 30 seconds" },
+    { "id": "cash-response", "from": "order", "to": "web", "y": 708, "label": "Created order shops", "variant": "return", "note": "Cash persists orders as pending" }
+  ],
+  "activations": [
+    { "participant": "web", "from": 152, "to": 712, "type": "frontend" },
+    { "participant": "quote", "from": 210, "to": 250, "type": "backend" },
+    { "participant": "order", "from": 318, "to": 712, "type": "backend" },
+    { "participant": "outbox", "from": 402, "to": 532, "type": "messagebus" },
+    { "participant": "payment", "from": 458, "to": 498, "type": "external" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Shared quote boundary",
+      "items": [
+        "Cart and buy-now both create a quote before any order exists",
+        "Quote creation owns totals, per-shop shipping, and item snapshots",
+        "A quote expires 30 minutes after its anchor instant"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Card payment session",
+      "items": [
+        "Order creation persists checkout_pending plus the outbox event",
+        "One inline pass runs with a 1500 ms timeout",
+        "A pending session is resolved by readiness polling"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Cash payment",
+      "items": [
+        "Cash persists orders as pending and returns created order shops",
+        "No payment session or readiness polling is involved"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Cash Order and Inventory Event Flow",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [1680, 600],
+    "views": [
+      { "id": "validate-and-persist", "label": "Validate then persist", "focus": ["web", "order", "quote", "inventory"], "note": "Cash order creation validates the stored reservation before persisting order shops." },
+      { "id": "order-created-event", "label": "order.created to SOLD", "focus": ["order", "invoutbox", "rabbit", "inventory"], "note": "The inventory outbox publishes order.created and the consumer moves the reservation to SOLD." },
+      { "id": "invalid-reservation", "label": "Invalid reservation", "focus": ["inventory", "order", "web"], "note": "An inactive reservation ends order creation with a reservation-unavailable code." }
+    ]
+  },
+  "participants": [
+    { "id": "web", "type": "frontend", "label": "Storefront Web" },
+    { "id": "order", "type": "backend", "label": "Order Creation API" },
+    { "id": "quote", "type": "backend", "label": "Checkout Quote API" },
+    { "id": "inventory", "type": "backend", "label": "Inventory Service" },
+    { "id": "invoutbox", "type": "messagebus", "label": "Order Inventory Outbox" },
+    { "id": "rabbit", "type": "messagebus", "label": "RabbitMQ" }
+  ],
+  "segments": [
+    { "from": 196, "to": 412, "label": "Cash order and order.created" },
+    { "from": 440, "to": 524, "label": "Invalid reservation: recovery" }
+  ],
+  "messages": [
+    { "id": "create-order", "from": "web", "to": "order", "y": 160, "label": "Create cash order with quote_id", "variant": "emphasis" },
+    { "id": "reload-quote", "from": "order", "to": "quote", "y": 216, "label": "Reload and validate the quote", "variant": "default" },
+    { "id": "validate-reservation", "from": "order", "to": "inventory", "y": 244, "label": "POST /inventory/reservations/validate", "variant": "emphasis" },
+    { "id": "reservation-active", "from": "inventory", "to": "order", "y": 272, "label": "valid ACTIVE reservation", "variant": "return", "note": "Persist local orders as pending" },
+    { "id": "persist-inventory-event", "from": "order", "to": "invoutbox", "y": 300, "label": "Persist order.created inventory event", "variant": "default" },
+    { "id": "publish-event", "from": "invoutbox", "to": "rabbit", "y": 328, "label": "Publish order.created", "variant": "dashed" },
+    { "id": "deliver-event", "from": "rabbit", "to": "inventory", "y": 356, "label": "Deliver order.created", "variant": "dashed", "note": "Consume the reservation to SOLD" },
+    { "id": "cash-response", "from": "order", "to": "web", "y": 384, "label": "Created order shops", "variant": "return" },
+    { "id": "reservation-invalid", "from": "inventory", "to": "order", "y": 468, "label": "invalid reservation status", "variant": "return" },
+    { "id": "reservation-unavailable", "from": "order", "to": "web", "y": 496, "label": "CHECKOUT_QUOTE_RESERVATION_UNAVAILABLE", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "web", "from": 152, "to": 502, "type": "frontend" },
+    { "participant": "order", "from": 152, "to": 502, "type": "backend" },
+    { "participant": "quote", "from": 210, "to": 278, "type": "backend" },
+    { "participant": "inventory", "from": 238, "to": 392, "type": "backend" },
+    { "participant": "invoutbox", "from": 294, "to": 362, "type": "messagebus" },
+    { "participant": "rabbit", "from": 322, "to": 390, "type": "messagebus" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Validate before persisting",
+      "items": [
+        "Cash order creation validates the stored reservation is ACTIVE",
+        "Order shops are persisted as pending only after that validation"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "order.created ownership",
+      "items": [
+        "The API persists order.created in the order inventory outbox",
+        "The publisher publishes through RabbitMQ",
+        "inventory-service consumes it and moves the reservation to SOLD"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Card differs",
+      "items": [
+        "Card order creation skips this validation entirely",
+        "Card orders write order.created only after payment succeeds",
+        "An unusable reservation returns CHECKOUT_QUOTE_RESERVATION_UNAVAILABLE"
+      ]
+    }
+  ]
+}
