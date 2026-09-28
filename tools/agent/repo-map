@@ -10,13 +10,19 @@ Usage: ./tools/agent/repo-map <topic>
 
 Topics:
   checkout
+  orders
+  fulfillment
+  shipping
   product-import
   multi-currency
   coupon
+  catalog
+  reviews
   realtime-chat
+  notifications
   order-export
   inventory
-  catalog
+  auth
   architecture
 
 Use this before broad code search when starting work on a known Arc feature.
@@ -74,6 +80,7 @@ case "$TOPIC" in
     items \
       "docs/features/checkout/README.md" \
       "docs/features/checkout/flow.md" \
+      "docs/features/checkout/flows" \
       "apps/api/api/docs/features/checkout-quote-design.md" \
       "apps/api/api/docs/features/checkout-transactional-outbox.md" \
       "apps/api/api/docs/adrs/001-adopt-canonical-catalog-pricing-with-quote-based-multi-currency-checkout.md"
@@ -100,13 +107,93 @@ case "$TOPIC" in
       "cd apps/web && pnpm --filter @arc/storefront exec playwright test --config ./playwright.config.ts e2e/checkout/card-pending.spec.ts --project=chromium"
     ;;
 
+  orders)
+    section "Topic"
+    echo "  orders"
+    section "Domain context"
+    items \
+      "CONTEXT-MAP.md" \
+      "docs/domain/ordering/CONTEXT.md" \
+      "docs/adr/0002-shop-orders-with-separate-fulfillment-and-shipments.md"
+    section "API"
+    items \
+      "apps/api/api/src/domains/order" \
+      "apps/api/api/src/domains/order/jobs/send-guest-order-confirmation-email.job.ts" \
+      "apps/api/api/src/domains/order/jobs/process-order-refund.job.ts" \
+      "apps/api/api/src/domains/order/jobs/send-seller-order-update-email.job.ts"
+    section "Web"
+    items \
+      "apps/web/apps/storefront/src/app/pages/orders" \
+      "apps/web/apps/storefront/src/app/pages/guest-orders" \
+      "apps/web/apps/storefront/src/domains/me/ui/order-shop" \
+      "apps/web/apps/storefront/e2e/guest-orders" \
+      "apps/web/apps/seller/src/app/pages/orders"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify storefront" \
+      "./scripts/verify seller"
+    ;;
+
+  fulfillment)
+    section "Topic"
+    echo "  fulfillment"
+    section "Domain context"
+    items \
+      "CONTEXT-MAP.md" \
+      "docs/domain/fulfillment/CONTEXT.md" \
+      "docs/domain/ordering/CONTEXT.md" \
+      "docs/adr/0002-shop-orders-with-separate-fulfillment-and-shipments.md"
+    section "API"
+    items \
+      "apps/api/api/src/domains/fulfillment" \
+      "apps/api/api/src/domains/order"
+    section "Web"
+    items \
+      "apps/web/apps/seller/src/app/pages/orders" \
+      "apps/web/apps/seller/src/domains/shop/order" \
+      "apps/web/apps/seller/src/domains/shop/mutations/order-fulfillment.mutation.ts"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify seller"
+    ;;
+
+  shipping)
+    section "Topic"
+    echo "  shipping"
+    section "Domain context"
+    items \
+      "CONTEXT-MAP.md" \
+      "docs/domain/shipping/CONTEXT.md" \
+      "docs/adr/0003-default-shipping-profile-is-a-creation-affordance.md"
+    section "API"
+    items \
+      "apps/api/api/src/domains/shipping" \
+      "apps/api/api/src/domains/checkout"
+    section "Web"
+    items \
+      "apps/web/apps/seller/src/domains/shop/ui/shipping-profile" \
+      "apps/web/apps/seller/src/app/pages/settings/shipping"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify seller"
+    ;;
+
   product-import)
     section "Topic"
     echo "  product-import"
     section "Domain context"
     items \
       "CONTEXT-MAP.md" \
-      "CONTEXT.md"
+      "docs/domain/product-imports/CONTEXT.md"
     section "Docs"
     items \
       "docs/features/import-product-design/README.md" \
@@ -152,7 +239,8 @@ case "$TOPIC" in
     items \
       "apps/web/apps/storefront/src/domains/market" \
       "apps/web/apps/seller/src/domains/market" \
-      "apps/web/apps/storefront/src/app/components/market-preferences"
+      "apps/web/apps/storefront/src/domains/market/ui/preferences" \
+      "apps/web/apps/storefront/src/domains/market/stores/market-preferences.ts"
     common_api_guidance
     common_web_guidance
     section "Verify"
@@ -160,117 +248,13 @@ case "$TOPIC" in
       "./scripts/verify api" \
       "./scripts/verify web"
     ;;
-
-  realtime-chat)
-    section "Topic"
-    echo "  realtime-chat"
-    section "Docs"
-    items \
-      "docs/features/realtime-chat/README.md" \
-      "docs/features/realtime-chat/flow.md"
-    section "API"
-    items \
-      "apps/api/api/src/domains/chat" \
-      "apps/api/api/src/platform/ws" \
-      "apps/api/api/src/integrations/queue"
-    section "Web"
-    items \
-      "apps/web/apps/storefront/src/app/components/chat" \
-      "apps/web/apps/storefront/src/shared/realtime/chat-events.client.ts" \
-      "apps/web/apps/seller/src/domains/shop/chat" \
-      "apps/web/apps/seller/src/app/pages/messages"
-    common_api_guidance
-    common_web_guidance
-    section "Verify"
-    commands \
-      "./scripts/verify api" \
-      "./scripts/verify web"
-    ;;
-
-  order-export)
-    section "Topic"
-    echo "  order-export"
-    section "Docs"
-    items \
-      "docs/features/export-order-design/README.md" \
-      "docs/features/export-order-design/flow.md" \
-      "apps/api/api/docs/adrs/003-shop-order-csv-export.md" \
-      "apps/api/api/docs/features/shop-order-export-glossary.md"
-    section "API"
-    items \
-      "apps/api/api/src/domains/order" \
-      "apps/api/api/src/domains/shop"
-    section "Web"
-    items \
-      "apps/web/apps/seller/src/domains/shop/order" \
-      "apps/web/apps/seller/src/app/pages/orders"
-    common_api_guidance
-    common_web_guidance
-    section "Verify"
-    commands \
-      "./scripts/verify api" \
-      "./scripts/verify seller"
-    ;;
-
-  inventory)
-    section "Topic"
-    echo "  inventory"
-    section "Docs"
-    items \
-      "apps/api/api/docs/features/inventory-reservation-go-service.md"
-    section "API"
-    items \
-      "apps/api/inventory-service" \
-      "apps/api/api/src/domains/product" \
-      "apps/api/api/src/domains/checkout" \
-      "apps/api/api/src/domains/order"
-    section "Verify"
-    commands \
-      "./scripts/verify inventory" \
-      "./scripts/verify api"
-    ;;
-
-  catalog)
-    section "Topic"
-    echo "  catalog"
-    section "Domain context"
-    items \
-      "CONTEXT-MAP.md" \
-      "CONTEXT.md"
-    section "Docs"
-    items \
-      "apps/api/api/docs/adrs/002-adopt-projected-catalog-read-model-with-pluggable-search.md" \
-      "apps/api/api/docs/features/public-product-facets.md" \
-      "apps/api/api/docs/features/public-product-recommendations.md" \
-      "apps/api/api/docs/features/product-image-pipeline.md.md" \
-      "apps/api/api/docs/features/product-state-lifecycle.md"
-    section "API"
-    items \
-      "apps/api/api/src/domains/product" \
-      "apps/api/api/src/domains/category" \
-      "apps/api/api/src/domains/shop"
-    section "Web"
-    items \
-      "apps/web/apps/storefront/src/domains/product" \
-      "apps/web/apps/storefront/src/domains/category" \
-      "apps/web/apps/storefront/src/app/pages/c" \
-      "apps/web/apps/seller/src/domains/shop/product"
-    common_api_guidance
-    common_web_guidance
-    section "Verify"
-    commands \
-      "./scripts/verify api" \
-      "./scripts/verify web"
-    ;;
-
 
   coupon)
     section "Topic"
     echo "  coupon"
     section "Domain context"
     items \
-      "CONTEXT-MAP.md" \
-      "CONTEXT.md"
+      "CONTEXT-MAP.md"
     section "Docs"
     items \
       "docs/features/coupon-design/README.md" \
@@ -296,9 +280,10 @@ case "$TOPIC" in
       "apps/web/apps/seller/src/domains/shop/mutations/delete-coupon.mutation.ts" \
       "apps/web/apps/seller/src/domains/shop/mutations/bulk-delete-coupons.mutation.ts" \
       "apps/web/apps/seller/src/domains/shop/queries/coupons.query.ts" \
-      "apps/web/apps/storefront/src/app/pages/cart/_components/add-remove-coupons.vue" \
-      "apps/web/apps/storefront/src/app/pages/checkout/_components/add-remove-promo-coupons.vue" \
-      "apps/web/apps/storefront/src/app/pages/orders/_components/shop-item/note-and-promo-coupons.vue"
+      "apps/web/apps/storefront/src/domains/cart/ui/shop-cart/cart-shop-promo-coupons.vue" \
+      "apps/web/apps/storefront/src/domains/cart/ui/shop-cart/shop-cart-promo-coupons-ui.vue" \
+      "apps/web/apps/storefront/src/app/pages/checkout/_components/checkout-now-promo-coupons.vue" \
+      "apps/web/apps/storefront/src/domains/me/ui/order-shop/note-and-promo-coupons.vue"
     common_api_guidance
     common_web_guidance
     section "Verify"
@@ -307,15 +292,210 @@ case "$TOPIC" in
       "./scripts/verify seller" \
       "./scripts/verify storefront"
     ;;
+
+  catalog)
+    section "Topic"
+    echo "  catalog"
+    section "Domain context"
+    items \
+      "CONTEXT-MAP.md" \
+      "docs/domain/seller-catalog/CONTEXT.md"
+    section "Docs"
+    items \
+      "apps/api/api/docs/adrs/002-adopt-projected-catalog-read-model-with-pluggable-search.md" \
+      "apps/api/api/docs/adrs/006-use-outbox-for-product-lifecycle-projections.md" \
+      "apps/api/api/docs/adrs/007-retain-published-catalog-identities.md" \
+      "apps/api/api/docs/adrs/012-product-variant-structure-expansion.md" \
+      "docs/adr/0001-product-option-redesign.md" \
+      "docs/features/product-variant-design" \
+      "apps/api/api/docs/features/public-product-facets.md" \
+      "apps/api/api/docs/features/public-product-recommendations.md" \
+      "apps/api/api/docs/features/product-state-lifecycle.md" \
+      "apps/api/api/docs/features/product-image-pipeline.md.md"
+    section "API"
+    items \
+      "apps/api/api/src/domains/product" \
+      "apps/api/api/src/domains/category" \
+      "apps/api/api/src/domains/shop" \
+      "apps/api/api/src/integrations/image-transform"
+    section "Web"
+    items \
+      "apps/web/apps/storefront/src/domains/product" \
+      "apps/web/apps/storefront/src/domains/category" \
+      "apps/web/apps/storefront/src/app/pages/c" \
+      "apps/web/apps/storefront/src/app/pages/search" \
+      "apps/web/apps/seller/src/domains/shop/product"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify web"
+    ;;
+
+  reviews)
+    section "Topic"
+    echo "  reviews"
+    section "API"
+    items \
+      "apps/api/api/src/domains/product/app/use-cases/upsert-my-product-review" \
+      "apps/api/api/src/domains/product/app/use-cases/list-public-product-reviews" \
+      "apps/api/api/src/domains/product/app/use-cases/list-shop-product-reviews" \
+      "apps/api/api/src/domains/product/app/use-cases/update-shop-product-review-status" \
+      "apps/api/api/src/domains/product/jobs/generate-review-image-variants.job.ts" \
+      "apps/api/api/src/domains/shop/api/rest/shop-product-reviews.controller.ts"
+    section "Web"
+    items \
+      "apps/web/apps/storefront/src/domains/product/queries/reviews.query.ts" \
+      "apps/web/apps/storefront/src/domains/me/api/product-review" \
+      "apps/web/apps/storefront/src/domains/me/mutations/product-reviews" \
+      "apps/web/apps/storefront/src/domains/me/ui/order-shop/shop-actions/write-product-review-dialog"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify web"
+    ;;
+
+  realtime-chat)
+    section "Topic"
+    echo "  realtime-chat"
+    section "Docs"
+    items \
+      "docs/features/realtime-chat/README.md" \
+      "docs/features/realtime-chat/flow.md"
+    section "API"
+    items \
+      "apps/api/api/src/domains/chat" \
+      "apps/api/api/src/platform/ws" \
+      "apps/api/api/src/integrations/queue"
+    section "Web"
+    items \
+      "apps/web/apps/storefront/src/domains/me/ui/chat" \
+      "apps/web/apps/storefront/src/domains/me/realtime/chat-events.client.ts" \
+      "apps/web/apps/seller/src/domains/shop/chat" \
+      "apps/web/apps/seller/src/app/pages/messages"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify web"
+    ;;
+
+  notifications)
+    section "Topic"
+    echo "  notifications"
+    section "API"
+    items \
+      "apps/api/api/src/domains/notification" \
+      "apps/api/api/src/domains/notification/jobs/send-web-push-notification.job.ts" \
+      "apps/api/api/src/integrations/mail"
+    section "Web"
+    items \
+      "apps/web/apps/storefront/src/domains/me/api/notifications" \
+      "apps/web/apps/storefront/src/domains/me/queries/notifications" \
+      "apps/web/apps/storefront/src/domains/me/composables/use-web-push-notifications.ts" \
+      "apps/web/apps/storefront/src/app/layouts/market/header/notification-popover.vue" \
+      "apps/web/apps/storefront/src/app/pages/account/notifications.vue" \
+      "apps/web/apps/seller/src/app/pages/notifications" \
+      "apps/web/apps/storefront/e2e/notifications"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify web"
+    ;;
+
+  order-export)
+    section "Topic"
+    echo "  order-export"
+    section "Domain context"
+    items \
+      "docs/domain/ordering/CONTEXT.md"
+    section "Docs"
+    items \
+      "docs/features/export-order-design/README.md" \
+      "docs/features/export-order-design/flow.md" \
+      "apps/api/api/docs/adrs/003-shop-order-csv-export.md" \
+      "apps/api/api/docs/features/shop-order-export-glossary.md"
+    section "API"
+    items \
+      "apps/api/api/src/domains/order" \
+      "apps/api/api/src/domains/order/jobs/process-shop-order-export.job.ts" \
+      "apps/api/api/src/domains/shop"
+    section "Web"
+    items \
+      "apps/web/apps/seller/src/domains/shop/order" \
+      "apps/web/apps/seller/src/domains/shop/order/order-export-events.client.ts" \
+      "apps/web/apps/seller/src/app/pages/orders"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify seller"
+    ;;
+
+  inventory)
+    section "Topic"
+    echo "  inventory"
+    section "Domain context"
+    items \
+      "docs/domain/inventory/CONTEXT.md"
+    section "Docs"
+    items \
+      "apps/api/api/docs/features/inventory-reservation-go-service.md" \
+      "apps/api/api/docs/adrs/005-inventory-capability-owns-inventory-items.md"
+    section "API"
+    items \
+      "apps/api/inventory-service" \
+      "apps/api/api/src/domains/product" \
+      "apps/api/api/src/domains/checkout" \
+      "apps/api/api/src/domains/order"
+    section "Verify"
+    commands \
+      "./scripts/verify inventory" \
+      "./scripts/verify api"
+    ;;
+
+  auth)
+    section "Topic"
+    echo "  auth"
+    section "Docs"
+    items \
+      "docs/features/portal-access-policy.md"
+    section "API"
+    items \
+      "apps/api/api/src/domains/auth" \
+      "apps/api/api/src/domains/user" \
+      "apps/api/api/src/domains/auth/jobs/send-password-reset-email.job.ts"
+    section "Web"
+    items \
+      "apps/web/apps/storefront/src/domains/auth" \
+      "apps/web/apps/storefront/e2e/auth" \
+      "apps/web/apps/seller/src/domains/auth" \
+      "apps/web/apps/seller/src/app/pages/login"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify web"
+    ;;
+
   architecture)
     section "Topic"
     echo "  architecture"
     section "Docs"
     items \
       "docs/architecture/harness-engineering.md" \
-      "CONTEXT-MAP.md" \
       "docs/agents/domain.md" \
-      "docs/agents/issue-tracker.md"
+      "docs/agents/issue-tracker.md" \
+      "docs/adr" \
+      "CONTEXT-MAP.md"
     section "Harness"
     items \
       "AGENTS.md" \
