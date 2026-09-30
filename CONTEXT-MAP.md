@@ -11,6 +11,7 @@ Arc has multiple domain contexts. Each context owns its glossary and relationshi
 - [Ordering](./docs/domain/ordering/CONTEXT.md) - Confirmed Order facts, historical identity, and retention.
 - [Fulfillment](./docs/domain/fulfillment/CONTEXT.md) - Fulfillment responsibility, assignments, groups, physical Shipments, progress, and exceptions for confirmed Order quantities.
 - [Product Imports](./docs/domain/product-imports/CONTEXT.md) - Asynchronous XLSX submissions that create Product drafts with row-level outcomes.
+- [Promotions](./docs/domain/promotions/CONTEXT.md) - Seller Sales, Checkout Discounts, Promo Codes, and their discoverability.
 
 ## Relationships
 

@@ -16,6 +16,7 @@ Topics:
   product-import
   multi-currency
   coupon
+  promotions
   catalog
   reviews
   realtime-chat
@@ -284,6 +285,47 @@ case "$TOPIC" in
       "apps/web/apps/storefront/src/domains/cart/ui/shop-cart/shop-cart-promo-coupons-ui.vue" \
       "apps/web/apps/storefront/src/app/pages/checkout/_components/checkout-now-promo-coupons.vue" \
       "apps/web/apps/storefront/src/domains/me/ui/order-shop/note-and-promo-coupons.vue"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify seller" \
+      "./scripts/verify storefront"
+    ;;
+
+  promotions)
+    section "Topic"
+    echo "  promotions"
+    section "Domain context"
+    items \
+      "CONTEXT-MAP.md" \
+      "docs/domain/promotions/CONTEXT.md"
+    section "Docs"
+    items \
+      "docs/features/promotion-sales/README.md" \
+      "docs/features/coupon-design/README.md"
+    section "API"
+    items \
+      "apps/api/api/src/domains/promotion" \
+      "apps/api/api/src/domains/shop/api/rest/shop-sales.controller.ts" \
+      "apps/api/api/src/domains/shop/app/use-cases/create-shop-sale" \
+      "apps/api/api/src/domains/shop/app/use-cases/list-shop-sales" \
+      "apps/api/api/src/domains/coupon/app/services/coupon-pricing.service.ts" \
+      "apps/api/api/src/domains/product/app/services/storefront-indexed-price-projection.service.ts" \
+      "apps/api/api/src/domains/product/jobs/project-shop-catalog-products.job.ts" \
+      "apps/api/api/test/integration/sales.int-spec.ts"
+    section "Web"
+    items \
+      "apps/web/packages/enums/src/promotion.ts" \
+      "apps/web/apps/seller/src/app/pages/sales" \
+      "apps/web/apps/seller/src/domains/shop/api/sale" \
+      "apps/web/apps/seller/src/domains/shop/api/schemas/sale" \
+      "apps/web/apps/seller/src/domains/shop/schemas/sale" \
+      "apps/web/apps/seller/src/domains/shop/utils/zoned-local-date-time.ts" \
+      "apps/web/apps/seller/src/domains/shop/queries/sales.query.ts" \
+      "apps/web/apps/seller/src/domains/shop/mutations/create-sale.mutation.ts" \
+      "apps/web/apps/seller/src/domains/shop/ui/apply-product-targets.vue"
     common_api_guidance
     common_web_guidance
     section "Verify"
