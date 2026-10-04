@@ -32,9 +32,9 @@ In scope (ticket 03):
 - Manual code entry through the existing cart/quote/Order pipeline, and the
   separate `sale_discount_minor` / `discount_minor` split on quotes and Orders.
 
-Out of scope (later tickets): fixed-amount and free-shipping codes (05, 06),
-redemption limits (07), full promo-code management (08), immutable Order savings
-presentation (09), legacy coupon contraction (10), and the reset/seed flow (11).
+Out of scope (later tickets): full promo-code management (08), immutable Order
+savings presentation (09), legacy coupon contraction (10), and the reset/seed
+flow (11).
 
 ## Vocabulary
 
@@ -61,6 +61,19 @@ presentation (09), legacy coupon contraction (10), and the reset/seed flow (11).
 - Applying a code and obtaining a quote record nothing. A `promotion_usages` row
   is written once per applied Promotion and Order inside the commit transaction,
   so a failed commit consumes nothing.
+- Optional total and per-buyer redemption limits are checked against the counts
+  observed inside the commit transaction, after locking each Promotion row in a
+  stable order. Concurrent commitments therefore serialize on the allowance: a
+  loser cannot oversubscribe the final redemption, its Order rolls back, and it
+  receives refreshed checkout totals to accept before retrying. An omitted limit
+  is unlimited; a per-buyer limit requires an authenticated buyer account and
+  never falls back to browser identity or an unverified email.
+- Retrying a committed submission does not consume twice: the `(promotion,
+  order_id)` unique constraint makes the write idempotent, and cancelling or
+  refunding an Order never restores its consumed redemption.
+- Code exhaustion is an allowance indicator (`exhausted`, `redemption_count`)
+  reported separately from the Scheduled / Active / Ended / Cancelled lifecycle
+  state, so Active never implies remaining allowance.
 - A code string resolves to exactly one offer within a shop; when a legacy Coupon
   and a Promotion carry the same normalized code, the Promotion-backed offer
   wins, so a collision cannot apply or redeem both.
@@ -69,6 +82,14 @@ presentation (09), legacy coupon contraction (10), and the reset/seed flow (11).
   unavailable for reuse by another Promotion, since rows are retained.
 - Monetary facts keep their creation-time Promotion Currency; a later Shop
   currency change never redefines them.
+- When a commitment is refused because a code the buyer applied is no longer
+  accepted, the refreshed quote reconciles the buyer's selection to the codes it
+  actually accepted, and the shop's coupon section explains each removal. No
+  chip survives without the discount behind it, and re-acceptance is informed.
+- A rejected coupon apply (422) carries the evaluator's `reason` next to its
+  human `message`, so the storefront renders precise copy ("fully redeemed",
+  "sign in to use this promo code", "minimum not met") instead of the one-size
+  fallback the message alone must use when the reason is unknown.
 - A shop failure answers with a stable `code` next to its human `message`
   (`PROMO_CODE_ALREADY_EXISTS`, `PROMO_CODE_PRODUCT_SCOPE_INVALID`, …). The
   seller app writes its own copy per code and only falls back to `message` for
@@ -82,9 +103,15 @@ presentation (09), legacy coupon contraction (10), and the reset/seed flow (11).
   shape; `CouponPricingService` resolves both sources and `evaluateManualPromoOffer`
   is the single eligibility rule.
 - `CreateShopPromoCodeUseCase` / `ListShopPromoCodesUseCase` and
-  `ShopPromoCodesController` back `POST`/`GET /v1/shops/:shop_id/promo-codes`.
-- `OrderCheckoutService` resolves the applied offers, writes `promotion_usages`,
-  and persists `sale_discount_minor` alongside `discount_minor`.
+  `ShopPromoCodesController` back `POST`/`GET /v1/shops/:shop_id/promo-codes`,
+  including the optional `max_redemptions` / `max_redemptions_per_buyer` limits
+  and the derived `redemption_count` / `exhausted` allowance.
+- `PromotionRedemptionService` owns the atomic allowance rule: lock, recount,
+  reject, and idempotently write `promotion_usages` inside the caller's
+  transaction. `assertRedemptionAllowed` is the pure domain rule it applies.
+- `OrderCheckoutService` resolves the applied offers, delegates redemption to
+  `PromotionRedemptionService`, and persists `sale_discount_minor` alongside
+  `discount_minor`. A limit failure is remapped to refreshed checkout totals.
 - Seller app `/promo-codes` and `/promo-codes/new`; storefront checkout shows
   Sale savings and Code savings as separate lines.
 
@@ -123,7 +150,14 @@ sequenceDiagram
   after a Sale, `sale_discount_minor` stays distinct from `discount_minor`, the
   committed Order keeps the code and the amounts, and no redemption row exists
   until the Order commits.
-- Unit coverage: `coupon-pricing.service.spec.ts`, `create-checkout-quote.service.spec.ts`,
+- `apps/api/api/test/integration/promo-code-redemption.int-spec.ts` also pins the
+  allowance behavior: a real-database concurrency test synchronizes two buyers on
+  the final redemption and asserts exactly one Order and one usage row, plus
+  idempotent retry, cancellation retaining the redemption, and the authenticated
+  per-buyer limit. The seller creation/listing contract for the limits is covered
+  in `promo-code-creation.int-spec.ts`.
+- Unit coverage: `promotion-redemption.spec.ts` (domain rule),
+  `coupon-pricing.service.spec.ts`, `create-checkout-quote.service.spec.ts`,
   `checkout-quote-price-freshness.spec.ts`, and `order-checkout.service.spec.ts`.
 - Browser smoke (performed against the local stack): the seller created a 15%
   code from Marketing → Promo codes and saw it Active in the listing; the buyer
@@ -133,6 +167,5 @@ sequenceDiagram
 ## Open Questions
 
 - Public Promo Code discovery in the checkout picker is ticket 04.
-- Redemption limits and their atomic enforcement are ticket 07.
-- Retaining a redemption across a replayed card-checkout request depends on
-  checkout-level idempotency, which ticket 07 owns.
+- Seller-facing management of counts, limits, and exhaustion in the listing is
+  ticket 08.
