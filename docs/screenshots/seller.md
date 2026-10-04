@@ -20,6 +20,6 @@ Seller create product page for entering listing details, pricing, inventory, and
 
 Seller order list page for tracking customer orders, fulfillment status, and order management actions.
 
-![Arc seller coupon list](../../assets/screenshots/seller-coupon-list-page.png?v=44189200f8ee)
+![Arc seller promo code list](../../assets/screenshots/seller-promo-code-list-page.png?v=44189200f8ee)
 
-Seller coupon list page for managing promotion codes and discount campaigns.
+Seller promo code list page for managing Checkout Discounts.

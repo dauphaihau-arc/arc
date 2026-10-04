@@ -22,7 +22,7 @@ A ecommerce marketplace workspace where people come together to make, sell, buy,
 - **Product search** - customers can search products with suggestions, filters, facets, and category navigation
 - **Product recommendations** - storefront flows surface best sellers, trending products, recently viewed items, and related products
 - **Product reviews** - customers can rate purchased products, write reviews, and upload review images
-- **Cart and checkout** - customers can manage carts, apply coupons, choose shipping, and place cart or buy-now orders
+- **Cart and checkout** - customers can manage carts, apply promo codes, choose shipping, and place cart or buy-now orders
 - **Payments and refunds** - customers can complete purchases and request refunds when needed
 - **Customer account management** - users can manage profiles, addresses, notifications, orders, reviews, and guest order tracking
 - **Notifications** - customers and sellers can receive commerce events such as order updates, shipment changes, support activity, and low-stock alerts

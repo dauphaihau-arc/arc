@@ -119,7 +119,7 @@ Use local-only seed files for extra local data instead of editing shared TSV fil
 - Seller sign-in, shop dashboard, product management, inventory, orders, promotions, and messages load.
 - Auth state survives refresh and redirects protected routes correctly.
 - Seeded images render from the configured storage backend.
-- Currency, shipping, coupon, and checkout calculations are consistent between UI and API responses.
+- Currency, shipping, Promo Code, and checkout calculations are consistent between UI and API responses.
 
 ## Common Issues
 

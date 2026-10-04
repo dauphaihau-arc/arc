@@ -4,8 +4,7 @@
 
 A Promo Code activates a **Checkout Discount**: a conditional benefit a buyer
 applies at checkout instead of an automatic product price reduction. This slice
-builds percentage Checkout Discounts on the shared Promotion model, next to the
-legacy coupon path that still serves its existing consumers.
+builds percentage Checkout Discounts on the shared Promotion model.
 
 Promotion vocabulary is canonical in
 [the Promotions context](../../domain/promotions/CONTEXT.md). Sales are described
@@ -33,7 +32,7 @@ In scope (ticket 03):
   separate `sale_discount_minor` / `discount_minor` split on quotes and Orders.
 
 Out of scope (later tickets): full promo-code management (08), immutable Order
-savings presentation (09), legacy coupon contraction (10), and the reset/seed
+savings presentation (09), the cutover contraction (10), and the reset/seed
 flow (11).
 
 ## Vocabulary
@@ -51,9 +50,9 @@ flow (11).
 
 ## Design Boundaries
 
-- One rule prices both legacy Coupons and Promotion-backed codes: each source
-  normalizes into a shared manual-offer shape, so eligibility and discount math
-  cannot drift between them.
+- One rule prices Checkout Discounts: a Promotion code normalizes into a shared
+  offer shape, so eligibility and discount math cannot drift between listing and
+  redemption.
 - A percentage code applies to the Eligible Merchandise Subtotal after Sale
   pricing and before shipping and tax, and to targeted Products only.
 - Catalog projection is derived display data; quotes and Order commitment
@@ -74,9 +73,8 @@ flow (11).
 - Code exhaustion is an allowance indicator (`exhausted`, `redemption_count`)
   reported separately from the Scheduled / Active / Ended / Cancelled lifecycle
   state, so Active never implies remaining allowance.
-- A code string resolves to exactly one offer within a shop; when a legacy Coupon
-  and a Promotion carry the same normalized code, the Promotion-backed offer
-  wins, so a collision cannot apply or redeem both.
+- A code string resolves to exactly one offer within a shop, because `(shop_id,
+  code)` is unique and a stopped Promotion retains its code.
 - Codes are matched case-insensitively and stored upper case. The `(shop_id,
   code)` unique constraint makes them unique per shop and permanently
   unavailable for reuse by another Promotion, since rows are retained.
@@ -84,9 +82,9 @@ flow (11).
   currency change never redefines them.
 - When a commitment is refused because a code the buyer applied is no longer
   accepted, the refreshed quote reconciles the buyer's selection to the codes it
-  actually accepted, and the shop's coupon section explains each removal. No
+  actually accepted, and the shop's Promo Code section explains each removal. No
   chip survives without the discount behind it, and re-acceptance is informed.
-- A rejected coupon apply (422) carries the evaluator's `reason` next to its
+- A rejected Promo Code apply (422) carries the evaluator's `reason` next to its
   human `message`, so the storefront renders precise copy ("fully redeemed",
   "sign in to use this promo code", "minimum not met") instead of the one-size
   fallback the message alone must use when the reason is unknown.
@@ -99,9 +97,9 @@ flow (11).
 
 - `PromotionCodeReader` (`MikroOrmPromotionCodeReader`) resolves the active
   Checkout Discounts of a shop.
-- `ManualPromoOffer` normalizes a Coupon or a Promotion code into one pricing
-  shape; `CouponPricingService` resolves both sources and `evaluateManualPromoOffer`
-  is the single eligibility rule.
+- `PromoOffer` normalizes a Promotion code into one pricing shape;
+  `PromotionPricingService` resolves offers and `evaluatePromoOffer` is the
+  single eligibility rule.
 - `CreateShopPromoCodeUseCase` / `ListShopPromoCodesUseCase` and
   `ShopPromoCodesController` back `POST`/`GET /v1/shops/:shop_id/promo-codes`,
   including the optional `max_redemptions` / `max_redemptions_per_buyer` limits
@@ -157,7 +155,7 @@ sequenceDiagram
   per-buyer limit. The seller creation/listing contract for the limits is covered
   in `promo-code-creation.int-spec.ts`.
 - Unit coverage: `promotion-redemption.spec.ts` (domain rule),
-  `coupon-pricing.service.spec.ts`, `create-checkout-quote.service.spec.ts`,
+  `promotion-pricing.service.spec.ts`, `create-checkout-quote.service.spec.ts`,
   `checkout-quote-price-freshness.spec.ts`, and `order-checkout.service.spec.ts`.
 - Browser smoke (performed against the local stack): the seller created a 15%
   code from Marketing → Promo codes and saw it Active in the listing; the buyer

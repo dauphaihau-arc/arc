@@ -20,7 +20,7 @@ Use these accounts on seller site.
 
 | Accounts | Shops | Currencies | Best For |
 | --- | --- | --- | --- |
-| `bulk.catalog@example.com` | Bulk Catalog Lab | SGD | Large table testing: product list, coupon list, pagination, filtering, sorting, and CRUD flows. Has 50 draft products and 50 coupons. |
+| `bulk.catalog@example.com` | Bulk Catalog Lab | SGD | Large table testing: product list, promo code list, pagination, filtering, sorting, and CRUD flows. Has 50 draft products and 69 promotions. |
 | `maker.olive@example.com`<br>`maker.mason@example.com`<br>`maker.sage@example.com` | Olive Atelier, Reed Workshop, Sage Studio | USD, EUR, JPY | Dashboard overview, revenue/order widgets, active product state, messages, reviews, and normal seller smoke checks. |
 | `maker.sage@example.com`<br>`maker.juno@example.com` | Sage Studio, Juno Console | JPY, AUD | Currency-specific testing. Use Sage Studio for JPY formatting and zero-decimal currency assumptions; use Juno Console as a second non-USD currency check. |
 | `maker.mason@example.com`<br>`maker.olive@example.com`<br>`maker.juno@example.com` | Reed Workshop, Olive Atelier, Juno Console | EUR, USD, AUD | Messages, reviews, and order checks across shops. Each shop has 10 seeded buyer conversations; Reed Workshop and Olive Atelier have stronger review coverage. |
@@ -93,8 +93,8 @@ Seeded product view history includes guest-session traffic for trending and reco
 - Add one item from a single shop to cart.
 - Add multiple items from the same shop to cart.
 - Confirm quantity update, item removal, subtotal, shipping, discount, and total.
-- Apply a valid coupon when available.
-- Try an invalid or expired coupon and confirm the error state.
+- Apply a valid promo code when available.
+- Try an invalid or expired promo code and confirm the error state.
 - Start checkout as a guest.
 - Start checkout as a signed-in customer.
 - Use Stripe test card `4242 4242 4242 4242` with any future expiry date, any CVC, and any postal code when the environment uses Stripe test mode.

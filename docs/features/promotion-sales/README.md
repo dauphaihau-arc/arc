@@ -4,10 +4,8 @@
 
 A Sale automatically reduces the current regular price of its targeted Products
 by a percentage during an explicit Promotion Period. It has no redemption code
-and no checkout conditions. This slice introduces the shared Promotion model and
-lets sellers create and schedule Sales from Marketing → Sales → Run a sale while
-the legacy coupon path keeps serving manual checkout discounts until later
-tickets migrate it.
+and no checkout conditions. Sales and Promo Codes share the Promotion model, and
+sellers create and schedule Sales from Marketing → Sales → Run a sale.
 
 Promotion vocabulary is canonical in [the Promotions context](../../domain/promotions/CONTEXT.md).
 
@@ -19,8 +17,8 @@ Promotion vocabulary is canonical in [the Promotions context](../../domain/promo
   genuine.
 - Keep catalog projection derived display data and the checkout quote/Order
   pricing authoritative.
-- Keep the legacy coupon path operational and forbid permanent compatibility
-  aliases as target architecture.
+- Keep one shared Promotion engine for Sales and Promo Codes, without permanent
+  compatibility aliases.
 
 ## Scope
 
@@ -35,8 +33,8 @@ In scope (ticket 01):
 
 Out of scope (later tickets): overlapping-Sale selection rules and Sale
 lifecycle stop actions (02), Promo Code creation and redemption (03-08),
-redemption limits (07), immutable Order savings presentation (09), legacy
-coupon contraction (10), and the reset/seed flow (11).
+redemption limits (07), immutable Order savings presentation (09), the cutover
+contraction (10), and the reset/seed flow (11).
 
 ## Vocabulary
 
@@ -52,9 +50,8 @@ coupon contraction (10), and the reset/seed flow (11).
 - Catalog projection is derived display data. The checkout quote and Order
   commitment re-resolve Sale pricing through the same rule instead of trusting a
   projection document.
-- Overlapping reductions never compound: the highest matching percentage wins.
-  While the legacy coupon path is migrated, an automatic-sale Coupon and a Sale
-  compete under the same rule.
+- Overlapping reductions never compound: the highest matching active Sale
+  percentage wins.
 - The reduction applies to the Product's current regular price, never a frozen
   creation-time base.
 - Seller schedules are authored as local wall clocks in an explicit IANA
@@ -71,7 +68,7 @@ coupon contraction (10), and the reset/seed flow (11).
   (`MikroOrmSaleProjectionReader`).
 - `ShopSalesController` with `CreateShopSaleUseCase` and `ListShopSalesUseCase`.
 - `StorefrontIndexedPriceProjectionService` (catalog display) and
-  `CouponPricingService` → `priceItems` (checkout pricing) consume
+  `PromotionPricingService` → `priceItems` (checkout pricing) consume
   `SaleProjectionReader`.
 - Seller app `/sales` and `/sales/new` pages plus the
   `zoned-local-date-time` client util.
@@ -110,8 +107,7 @@ sequenceDiagram
   `mikro-orm-sale-projection.reader.spec.ts` (highest percentage, scope,
   shop isolation), `storefront-indexed-price-projection.service.spec.ts`
   (display pricing incl. every inventory item of a selected Product), and
-  `coupon-pricing.service.spec.ts` (checkout pricing and Sale-vs-Coupon
-  precedence).
+  `promotion-pricing.service.spec.ts` (checkout pricing and Sale precedence).
 - Browser smoke (performed against the local stack): the seller Run a sale form
   created an immediate selected-Product 25% Sale and the Sales list showed it as
   Active with its schedule and timezone; the storefront Product page then showed
@@ -122,5 +118,4 @@ sequenceDiagram
 - Overlapping-Sale selection and lifecycle stop actions are ticket 02.
 - Checkout and Order savings presentation of Sale versus Promo Code savings is
   ticket 09.
-- The legacy `auto_sale` catalog metadata field name and the automatic-sale
-  Coupon path are removed in the ticket 10 contraction.
+- The reset/seed flow is ticket 11.
