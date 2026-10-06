@@ -6,6 +6,8 @@ Checkout lets a buyer turn selected storefront items into one or more orders thr
 
 The feature covers both cart checkout and buy-now checkout. It supports authenticated buyers and guest buyers, with different identity and address inputs but the same quote-first order creation boundary.
 
+The checkout quote is a pricing checkpoint only: it freezes totals, shipping, discounts, and item snapshots, but it does not reserve stock. Each Order reserves and owns its own stock hold at order creation.
+
 Checkout is buyer-facing order creation. It is not seller order management, post-purchase fulfillment, refund handling, payment reconciliation, or catalog price authoring.
 
 ## Goals
@@ -16,7 +18,7 @@ Checkout is buyer-facing order creation. It is not seller order management, post
 - Route card payments to a payment-provider checkout session.
 - Confirm cash orders immediately after local order creation.
 - Give guest buyers enough information to track the created order shops.
-- Recover clearly when the quote expires, the cart changes, or inventory can no longer be reserved.
+- Recover clearly when the quote expires, the cart changes, or inventory can no longer be reserved at order creation.
 
 ## Scope
 
@@ -63,7 +65,7 @@ Out of scope:
 5. Storefront submits a checkout quote request.
 6. API resolves checkout currency, totals, shipping, discounts, and item snapshots.
 7. API returns `quote_id`, quoted totals, quoted items, checkout currency, and expiration.
-8. Storefront submits order creation with `payment_type` and `quote_id`.
+8. Storefront submits order creation with `payment_type` and `quote_id`; the API reserves one stock hold per Order inside this transaction, and cash Orders consume the hold immediately.
 9. For card payment, API commits local orders and a checkout outbox event, then tries to create the payment checkout session once inline.
 10. If the card checkout session is ready, storefront redirects externally; if it is pending for an authenticated buyer, storefront polls readiness by order ids until the session URL is available.
 11. For cash payment, API returns created order shops and storefront routes to success.
@@ -223,7 +225,7 @@ After order creation succeeds, the storefront stores returned order shops in che
 - [ ] Card checkout redirects when a checkout session URL is available; authenticated pending card checkout polls readiness by order ids before redirecting.
 - [ ] Cash checkout routes to success after order shops are returned.
 - [ ] Guest success path preserves enough lookup context for order tracking.
-- [ ] Quote-expired, cart-changed, stock-unavailable, and reservation-unavailable failures show specific recovery copy.
+- [ ] Quote-expired, cart-changed, stock-unavailable, and reservation-unavailable failures show specific recovery copy; stock and reservation failures are surfaced at order creation because the quote does not hold stock.
 - [ ] Cart data refreshes after recoverable checkout invalidation failures.
 - [ ] Success page can resolve card-created order shops from checkout session id.
 

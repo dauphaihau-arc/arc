@@ -7,9 +7,9 @@
     "quality_profile": "showcase",
     "viewBox": [1180, 630],
     "views": [
-      { "id": "reservation-path", "label": "Reservation path", "focus": ["quote-created", "reservation-held", "reservation-ok", "order-persisted", "reservation-sold"], "note": "A hold is validated with the order and reaches SOLD through order.created." },
-      { "id": "card-wait", "label": "Card checkout wait", "focus": ["order-persisted", "checkout-pending", "awaiting-payment"], "note": "A card order waits for the payment session before it holds a reservation onward." },
-      { "id": "recovery", "label": "Recovery exits", "focus": ["reservation-ok", "unavailable", "checkout-pending", "released", "quote-created"], "note": "An unusable hold and an expired card session both send the buyer back to a new quote." }
+      { "id": "reservation-path", "label": "Reservation path", "focus": ["quote-created", "order-created", "reservation-held", "order-persisted", "reservation-sold"], "note": "A hold is created at order creation and reaches SOLD through order.created." },
+      { "id": "card-wait", "label": "Card checkout wait", "focus": ["order-persisted", "checkout-pending", "awaiting-payment", "reservation-sold"], "note": "A card order holds stock while the payment session is pending or awaiting payment." },
+      { "id": "recovery", "label": "Recovery exits", "focus": ["reservation-held", "reservation-failed", "checkout-pending", "released", "quote-created"], "note": "A failed hold or an expired card session both send the buyer back to a new quote." }
     ]
   },
   "lanes": [
@@ -19,50 +19,52 @@
   ],
   "states": [
     { "id": "quote-created", "type": "start", "label": "Quote Created", "lane": "main", "col": 0, "step": "01", "tag": "entry" },
-    { "id": "reservation-held", "type": "active", "label": "Reservation Held", "lane": "main", "col": 1, "step": "02", "tag": "remote" },
-    { "id": "reservation-ok", "type": "decision", "label": "Reservation OK", "lane": "main", "col": 2, "step": "03", "tag": "check" },
-    { "id": "order-persisted", "type": "active", "label": "Order Persisted", "lane": "main", "col": 3, "step": "04", "tag": "local" },
+    { "id": "order-created", "type": "active", "label": "Order Created", "lane": "main", "col": 1, "step": "02", "tag": "transaction" },
+    { "id": "reservation-held", "type": "active", "label": "Reservation Held", "lane": "main", "col": 2, "step": "03", "tag": "remote hold" },
+    { "id": "order-persisted", "type": "active", "label": "Order Persisted", "lane": "main", "col": 3, "step": "04", "tag": "cash/card" },
     { "id": "reservation-sold", "type": "success", "label": "Reservation SOLD", "lane": "main", "col": 4, "step": "05", "tag": "done" },
     { "id": "checkout-pending", "type": "waiting", "label": "Checkout Pending", "lane": "events", "col": 1, "width": 120, "tag": "card" },
     { "id": "awaiting-payment", "type": "waiting", "label": "Awaiting Payment", "lane": "events", "col": 2, "width": 120, "tag": "session ready" },
-    { "id": "unavailable", "type": "failure", "label": "Unavailable", "lane": "terminal", "col": 0, "width": 118, "tag": "recoverable" },
+    { "id": "reservation-failed", "type": "failure", "label": "Reservation Failed", "lane": "terminal", "col": 0, "width": 118, "tag": "recoverable" },
     { "id": "released", "type": "failure", "label": "Released", "lane": "terminal", "col": 1, "width": 118, "tag": "session expired" }
   ],
   "transitions": [
-    { "id": "quote-to-hold", "from": "quote-created", "to": "reservation-held", "variant": "default", "route": "straight" },
-    { "id": "hold-to-ok", "from": "reservation-held", "to": "reservation-ok", "variant": "default", "route": "straight" },
-    { "id": "ok-to-persisted", "from": "reservation-ok", "to": "order-persisted", "variant": "default", "route": "straight" },
+    { "id": "quote-to-order", "from": "quote-created", "to": "order-created", "variant": "default", "route": "straight" },
+    { "id": "order-to-hold", "from": "order-created", "to": "reservation-held", "variant": "emphasis", "route": "straight" },
+    { "id": "hold-to-persisted", "from": "reservation-held", "to": "order-persisted", "variant": "default", "route": "straight" },
     { "id": "persisted-to-sold", "from": "order-persisted", "to": "reservation-sold", "variant": "emphasis", "route": "straight" },
     { "id": "persisted-to-pending", "from": "order-persisted", "to": "checkout-pending", "variant": "default", "fromSide": "bottom", "toSide": "top", "route": "straight" },
     { "id": "pending-to-awaiting", "from": "checkout-pending", "to": "awaiting-payment", "variant": "default", "fromSide": "right", "toSide": "left", "route": "straight" },
+    { "id": "awaiting-to-sold", "from": "awaiting-payment", "to": "reservation-sold", "variant": "emphasis", "fromSide": "top", "toSide": "bottom", "route": "straight" },
     { "id": "pending-to-released", "from": "checkout-pending", "to": "released", "variant": "security", "fromSide": "bottom", "toSide": "top", "route": "straight" },
-    { "id": "ok-to-unavailable", "from": "reservation-ok", "to": "unavailable", "variant": "security", "fromSide": "bottom", "toSide": "top", "route": "straight" },
-    { "id": "unavailable-to-quote", "from": "unavailable", "to": "quote-created", "variant": "emphasis", "fromSide": "left", "toSide": "top", "via": [[20, 479], [20, 80], [94, 80]] }
+    { "id": "hold-to-failed", "from": "reservation-held", "to": "reservation-failed", "variant": "security", "fromSide": "bottom", "toSide": "top", "route": "straight" },
+    { "id": "failed-to-quote", "from": "reservation-failed", "to": "quote-created", "variant": "emphasis", "fromSide": "left", "toSide": "top", "via": [[20, 479], [20, 80], [94, 80]] }
   ],
   "cards": [
     {
       "dot": "emerald",
       "title": "Reservation path",
       "items": [
-        "Quote creation holds a remote reservation",
-        "Cash order creation validates it is ACTIVE before persisting",
-        "order.created moves the reservation to SOLD"
+        "Order creation creates one remote reservation per Order",
+        "Cash orders persist pending and publish order.created in the same transaction",
+        "inventory-service consumes order.created and moves the reservation to SOLD"
       ]
     },
     {
       "dot": "amber",
       "title": "Card checkout wait",
       "items": [
-        "A card order first waits as checkout_pending",
+        "A card order holds stock while checkout_pending",
         "A created session moves it to awaiting_payment",
-        "An expired session releases the hold"
+        "Payment success publishes order.created; session expiry releases the hold"
       ]
     },
     {
       "dot": "rose",
       "title": "Recovery exit",
       "items": [
-        "An unusable reservation returns CHECKOUT_QUOTE_RESERVATION_UNAVAILABLE",
+        "An out-of-stock or failed reservation returns RESERVATION_FAILED",
+        "Reservation failure now surfaces at order creation",
         "The buyer restarts checkout from a new quote"
       ]
     }

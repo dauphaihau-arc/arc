@@ -2,61 +2,73 @@
   "schema_version": 1,
   "diagram_type": "sequence",
   "meta": {
-    "title": "Checkout Quote and Reservation Flow",
+    "title": "Checkout Quote and Order Reservation Flow",
     "locale": "en",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "viewBox": [1360, 660],
+    "viewBox": [1360, 720],
     "views": [
-      { "id": "quote-and-hold", "label": "Quote holds stock", "focus": ["buyer", "web", "quote", "inventory"], "note": "Quote creation asks the remote reservation owner to hold stock." },
-      { "id": "reservation-accepted", "label": "Reservation accepted", "focus": ["quote", "inventory", "web"], "note": "The reservationId is stored on the quote and returned to the storefront." },
-      { "id": "reservation-failed", "label": "Reservation failed", "focus": ["inventory", "quote", "web"], "note": "A failed reservation returns one reserve failure code and no quote." }
+      { "id": "quote-only", "label": "Quote does not hold stock", "focus": ["buyer", "web", "quote"], "note": "Quote creation resolves pricing, totals, and advisory availability only." },
+      { "id": "reservation-accepted", "label": "Order reserves stock", "focus": ["web", "order", "inventory"], "note": "Order creation calls POST /inventory/reservations/quote carrying orderId and stores the reservationId." },
+      { "id": "reservation-failed", "label": "Reservation failed", "focus": ["inventory", "order", "web"], "note": "A failed reservation surfaces at order creation with RESERVATION_FAILED." }
     ]
   },
   "participants": [
     { "id": "buyer", "type": "external", "label": "Buyer" },
     { "id": "web", "type": "frontend", "label": "Storefront Web" },
     { "id": "quote", "type": "backend", "label": "Checkout Quote API" },
+    { "id": "order", "type": "backend", "label": "Order Creation API" },
     { "id": "inventory", "type": "backend", "label": "Inventory Service" }
   ],
   "segments": [
-    { "from": 196, "to": 244, "label": "Buyer input" },
-    { "from": 272, "to": 384, "label": "Quote creation and stock hold" },
-    { "from": 412, "to": 468, "label": "Reservation accepted" },
-    { "from": 496, "to": 580, "label": "Reservation failed" }
+    { "from": 196, "to": 220, "label": "Buyer input" },
+    { "from": 236, "to": 292, "label": "Quote creation" },
+    { "from": 308, "to": 356, "label": "Order creation request" },
+    { "from": 372, "to": 452, "label": "Reservation accepted" },
+    { "from": 476, "to": 532, "label": "Reservation failed" }
   ],
   "messages": [
     { "id": "start-checkout", "from": "buyer", "to": "web", "y": 160, "label": "Start cart or buy-now checkout", "variant": "default" },
     { "id": "enter-details", "from": "buyer", "to": "web", "y": 188, "label": "Enter shipping and payment details", "variant": "default" },
-    { "id": "confirm-order", "from": "buyer", "to": "web", "y": 216, "label": "Review and confirm", "variant": "default" },
-    { "id": "create-quote", "from": "web", "to": "quote", "y": 300, "label": "Create checkout quote", "variant": "emphasis", "note": "Resolve currency, totals, per-shop shipping, and snapshots" },
-    { "id": "request-reservation", "from": "quote", "to": "inventory", "y": 328, "label": "POST /inventory/reservations/quote", "variant": "emphasis" },
-    { "id": "reservation-accepted", "from": "inventory", "to": "quote", "y": 356, "label": "reservationId and ACTIVE status", "variant": "return", "note": "Store reservationId on the checkout quote" },
-    { "id": "quote-result", "from": "quote", "to": "web", "y": 440, "label": "quote_id, totals, shops, expires_at", "variant": "return" },
-    { "id": "reservation-failed", "from": "inventory", "to": "quote", "y": 524, "label": "RESERVATION_FAILED", "variant": "return" },
-    { "id": "stock-error", "from": "quote", "to": "web", "y": 552, "label": "Stock or reservation recovery error", "variant": "return" }
+    { "id": "create-quote", "from": "web", "to": "quote", "y": 244, "label": "Create checkout quote", "variant": "emphasis", "note": "Resolve currency, totals, per-shop shipping, and snapshots" },
+    { "id": "quote-result", "from": "quote", "to": "web", "y": 272, "label": "quote_id, totals, shops, expires_at", "variant": "return", "note": "No reservationId; quote does not hold stock" },
+    { "id": "confirm-order", "from": "buyer", "to": "web", "y": 316, "label": "Review and confirm", "variant": "default" },
+    { "id": "create-order", "from": "web", "to": "order", "y": 344, "label": "Create order with quote_id and payment_type", "variant": "emphasis", "note": "Reloads and validates the quote" },
+    { "id": "request-reservation", "from": "order", "to": "inventory", "y": 380, "label": "POST /inventory/reservations/quote", "variant": "emphasis", "note": "Carries orderId; one hold per Order" },
+    { "id": "reservation-accepted", "from": "inventory", "to": "order", "y": 408, "label": "reservationId and ACTIVE status", "variant": "return", "note": "Store reservationId on the order" },
+    { "id": "order-result", "from": "order", "to": "web", "y": 436, "label": "Created order shops", "variant": "return" },
+    { "id": "reservation-failed", "from": "inventory", "to": "order", "y": 484, "label": "RESERVATION_FAILED", "variant": "return" },
+    { "id": "stock-error", "from": "order", "to": "web", "y": 512, "label": "Stock or reservation recovery error", "variant": "return" }
   ],
   "activations": [
     { "participant": "web", "from": 152, "to": 556, "type": "frontend" },
-    { "participant": "quote", "from": 294, "to": 446, "type": "backend" },
-    { "participant": "inventory", "from": 322, "to": 528, "type": "backend" }
+    { "participant": "quote", "from": 238, "to": 278, "type": "backend" },
+    { "participant": "order", "from": 338, "to": 528, "type": "backend" },
+    { "participant": "inventory", "from": 374, "to": 504, "type": "backend" }
   ],
   "cards": [
     {
       "dot": "emerald",
-      "title": "Reservation-backed quote",
+      "title": "Quote boundary",
       "items": [
-        "With INVENTORY_RESERVATION_DRIVER=remote the inventory-service owns stock",
-        "Quote creation calls POST /inventory/reservations/quote",
-        "The returned reservationId is stored on the checkout quote"
+        "Quote creation resolves pricing, totals, shipping, and snapshots",
+        "The quote does not reserve stock or store a reservationId"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Order-owned reservation",
+      "items": [
+        "Order creation calls POST /inventory/reservations/quote with orderId",
+        "One hold per Order; reservationId stored on the order"
       ]
     },
     {
       "dot": "rose",
-      "title": "Reservation failure",
+      "title": "Reservation failure at order creation",
       "items": [
-        "Every reserve failure returns the single code RESERVATION_FAILED",
-        "The storefront receives stock or reservation recovery copy and no quote_id"
+        "Reserve failures return RESERVATION_FAILED after buyer review",
+        "Storefront receives recovery copy and no order"
       ]
     }
   ]

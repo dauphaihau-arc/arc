@@ -6,11 +6,12 @@
     "locale": "en",
     "quality_profile": "showcase",
     "column_fit": "spread",
-    "viewBox": [1640, 820],
+    "viewBox": [1640, 900],
     "views": [
       { "id": "session-ready", "label": "Inline fast path", "focus": ["order", "coutbox", "payment", "web"], "note": "The inline post-commit pass returns a checkout session URL directly." },
       { "id": "session-pending", "label": "Worker claims the event", "focus": ["coutbox", "worker", "order", "web"], "note": "A pending session is created by the worker while the storefront polls readiness." },
-      { "id": "payment-success", "label": "Payment success", "focus": ["payment", "order", "invoutbox"], "note": "The Stripe webhook moves orders to paid and writes order.created." }
+      { "id": "payment-success", "label": "Payment success", "focus": ["payment", "order", "invoutbox", "inventory"], "note": "The Stripe webhook writes order.created carrying the Order's reservationId." },
+      { "id": "session-expired", "label": "Session expiry", "focus": ["payment", "order", "worker", "inventory"], "note": "An expired provider session schedules cleanup to release the hold." }
     ]
   },
   "participants": [
@@ -20,15 +21,17 @@
     { "id": "worker", "type": "messagebus", "label": "Outbox Worker" },
     { "id": "payment", "type": "external", "label": "Payment Gateway" },
     { "id": "invoutbox", "type": "messagebus", "label": "Inventory Outbox" },
+    { "id": "inventory", "type": "backend", "label": "Inventory Service" },
     { "id": "buyer", "type": "external", "label": "Buyer" }
   ],
   "segments": [
     { "from": 196, "to": 384, "label": "Card session: inline ready" },
     { "from": 412, "to": 636, "label": "Card session: pending, poll readiness" },
-    { "from": 664, "to": 748, "label": "Card payment succeeds" }
+    { "from": 664, "to": 748, "label": "Card payment succeeds" },
+    { "from": 752, "to": 824, "label": "Session expiry and cleanup" }
   ],
   "messages": [
-    { "id": "persist-session-event", "from": "order", "to": "coutbox", "y": 216, "label": "Persist checkout-session-requested", "variant": "default" },
+    { "id": "persist-session-event", "from": "order", "to": "coutbox", "y": 216, "label": "Persist checkout-session-requested", "variant": "default", "note": "Order already holds reservationId" },
     { "id": "process-inline", "from": "order", "to": "coutbox", "y": 244, "label": "Try processing the event inline", "variant": "default", "note": "1500 ms timeout" },
     { "id": "create-session", "from": "coutbox", "to": "payment", "y": 272, "label": "Create checkout session", "variant": "emphasis" },
     { "id": "session-url", "from": "payment", "to": "coutbox", "y": 300, "label": "Checkout session URL", "variant": "return", "note": "Orders move to awaiting_payment" },
@@ -42,40 +45,45 @@
     { "id": "ready-after-poll", "from": "order", "to": "web", "y": 580, "label": "checkout_session_url", "variant": "return" },
     { "id": "redirect-pending", "from": "web", "to": "buyer", "y": 608, "label": "Redirect to payment provider", "variant": "return" },
     { "id": "payment-webhook", "from": "payment", "to": "order", "y": 692, "label": "POST /webhooks/stripe payment succeeded", "variant": "dashed", "note": "Orders move to paid" },
-    { "id": "persist-inventory-event", "from": "order", "to": "invoutbox", "y": 720, "label": "Persist order.created inventory event", "variant": "default", "note": "After validating the reservation" }
+    { "id": "persist-inventory-event", "from": "order", "to": "invoutbox", "y": 720, "label": "Persist order.created inventory event", "variant": "default", "note": "Carries the Order's reservationId" },
+    { "id": "consume-to-sold", "from": "invoutbox", "to": "inventory", "y": 736, "label": "Consume reservation to SOLD", "variant": "dashed" },
+    { "id": "session-expired", "from": "payment", "to": "order", "y": 760, "label": "Provider session expired", "variant": "dashed" },
+    { "id": "schedule-cleanup", "from": "order", "to": "worker", "y": 788, "label": "Schedule order.cleanup-expired-order-reservations", "variant": "dashed" },
+    { "id": "cleanup-release", "from": "worker", "to": "inventory", "y": 816, "label": "Release reservation", "variant": "emphasis" }
   ],
   "activations": [
-    { "participant": "order", "from": 152, "to": 750, "type": "backend" },
+    { "participant": "order", "from": 152, "to": 800, "type": "backend" },
     { "participant": "coutbox", "from": 210, "to": 570, "type": "messagebus" },
-    { "participant": "worker", "from": 490, "to": 570, "type": "messagebus" },
+    { "participant": "worker", "from": 490, "to": 824, "type": "messagebus" },
     { "participant": "payment", "from": 266, "to": 306, "type": "external" },
     { "participant": "web", "from": 322, "to": 614, "type": "frontend" },
     { "participant": "buyer", "from": 350, "to": 614, "type": "external" },
-    { "participant": "invoutbox", "from": 714, "to": 750, "type": "messagebus" }
+    { "participant": "invoutbox", "from": 714, "to": 750, "type": "messagebus" },
+    { "participant": "inventory", "from": 742, "to": 824, "type": "backend" }
   ],
   "cards": [
     {
       "dot": "emerald",
-      "title": "Inline fast path",
+      "title": "Checkout session",
       "items": [
-        "Orders persist as checkout_pending before the session exists",
-        "One inline processing pass runs with a 1500 ms timeout"
-      ]
-    },
-    {
-      "dot": "amber",
-      "title": "Pending and polling",
-      "items": [
-        "The worker claims pending events every 5 seconds",
-        "Readiness polling runs every second, up to 30 seconds"
+        "Order holds reservationId; session created inline or by worker",
+        "Readiness polling resolves pending sessions"
       ]
     },
     {
       "dot": "violet",
       "title": "Payment completion",
       "items": [
-        "The Stripe webhook moves awaiting_payment orders to paid",
-        "The API validates the reservation and writes order.created"
+        "Stripe webhook moves orders to paid",
+        "order.created carries reservationId; inventory moves it to SOLD"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Session expiry",
+      "items": [
+        "Expired provider session releases the hold",
+        "Fallback job order.cleanup-expired-order-reservations releases stale holds"
       ]
     }
   ]

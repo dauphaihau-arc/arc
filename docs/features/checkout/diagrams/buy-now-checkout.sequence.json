@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Buy-Now Checkout",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [1500, 540],
+    "views": [
+      { "id": "temporary-cart", "label": "Temporary cart", "focus": ["buyer", "web", "tempcart"], "note": "A buy-now cart is created with is_temp true and its id becomes c in /checkout?c=:cart_id." },
+      { "id": "buy-now-quote", "label": "Buy-now quote", "focus": ["web", "quote", "tempcart"], "note": "Quote creation requires a buy-now kind cart and persists money, adjustment, and shipping snapshots." },
+      { "id": "order-creation", "label": "Order creation", "focus": ["web", "order", "quote"], "note": "Order creation validates ownership, expiration, cart match, and shipping before returning." }
+    ]
+  },
+  "participants": [
+    { "id": "buyer", "type": "external", "label": "Buyer" },
+    { "id": "web", "type": "frontend", "label": "Storefront Web" },
+    { "id": "tempcart", "type": "backend", "label": "Temporary Cart" },
+    { "id": "quote", "type": "backend", "label": "Checkout Quote API" },
+    { "id": "order", "type": "backend", "label": "Order Creation API" }
+  ],
+  "segments": [
+    { "from": 152, "to": 236, "label": "Entry and temporary cart" },
+    { "from": 252, "to": 352, "label": "Buy-now quote" },
+    { "from": 376, "to": 452, "label": "Order creation" }
+  ],
+  "messages": [
+    { "id": "start-buy-now", "from": "buyer", "to": "web", "y": 168, "label": "Start buy-now from product detail", "variant": "default" },
+    { "id": "add-temp-cart", "from": "web", "to": "tempcart", "y": 196, "label": "Add to cart with is_temp true", "variant": "default" },
+    { "id": "open-checkout", "from": "web", "to": "buyer", "y": 224, "label": "Open /checkout?c=:cart_id", "variant": "return" },
+    { "id": "select-inputs", "from": "buyer", "to": "web", "y": 260, "label": "Select address, payment, note, and promo codes", "variant": "default" },
+    { "id": "create-quote", "from": "web", "to": "quote", "y": 288, "label": "Create buy-now quote (guest or authenticated route)", "variant": "emphasis", "note": "Persist money, shop adjustment, and shipping snapshots" },
+    { "id": "price-temp-cart", "from": "quote", "to": "tempcart", "y": 316, "label": "Require a buy-now kind cart and price it", "variant": "default" },
+    { "id": "quote-result", "from": "quote", "to": "web", "y": 344, "label": "quote_id, totals, shops, shipping_anchor_at, expires_at", "variant": "return" },
+    { "id": "create-order", "from": "web", "to": "order", "y": 384, "label": "Create order with quote_id and payment_type", "variant": "emphasis" },
+    { "id": "validate-quote", "from": "order", "to": "quote", "y": 412, "label": "Reload and validate ownership, expiration, cart match, and shipping", "variant": "default" },
+    { "id": "order-result", "from": "order", "to": "web", "y": 440, "label": "checkout_session_url, checkout_pending, or created order shops", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "buyer", "from": 162, "to": 270, "type": "external" },
+    { "participant": "web", "from": 160, "to": 448, "type": "frontend" },
+    { "participant": "tempcart", "from": 190, "to": 300, "type": "backend" },
+    { "participant": "quote", "from": 282, "to": 350, "type": "backend" },
+    { "participant": "order", "from": 378, "to": 444, "type": "backend" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Temporary cart",
+      "items": [
+        "The storefront route is /checkout?c=:cart_id and middleware redirects to / when c is missing",
+        "The temporary cart is created by adding to cart with is_temp: true",
+        "The returned cart id becomes c"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Buy-now quote",
+      "items": [
+        "Guest route POST /checkout/buy-now/quote needs the guest cart session cookie; authenticated route is POST /me/checkout/buy-now/quote",
+        "Quote creation sends cart_id and requires a buy-now cart",
+        "It returns quote_id, totals, shops[], shipping_anchor_at, and a 30-minute expires_at"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Order creation",
+      "items": [
+        "Guest order route POST /checkout/buy-now; authenticated route PUT /me/checkout/buy-now",
+        "Both send payment_type and quote_id",
+        "Order creation consumes the buy-now quote before returning a redirect or created order shops"
+      ]
+    }
+  ]
+}

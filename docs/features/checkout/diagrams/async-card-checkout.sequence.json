@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Async Card Checkout",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [1680, 760],
+    "views": [
+      { "id": "inline-fast-path", "label": "Inline fast path", "focus": ["web", "order", "outbox", "payment"], "note": "Order creation persists a checkout outbox event and tries one inline processing pass within 1500 ms." },
+      { "id": "pending-response", "label": "Pending response", "focus": ["order", "web", "buyer"], "note": "When inline processing produces no session, the response is checkout_pending with order ids." },
+      { "id": "worker-polling", "label": "Worker and readiness polling", "focus": ["worker", "outbox", "payment", "order", "web"], "note": "A Redis-gated worker claims pending events every 5 seconds while the storefront polls readiness for up to 30 seconds." }
+    ]
+  },
+  "participants": [
+    { "id": "buyer", "type": "external", "label": "Buyer" },
+    { "id": "web", "type": "frontend", "label": "Storefront Web" },
+    { "id": "order", "type": "backend", "label": "Order Creation API" },
+    { "id": "outbox", "type": "messagebus", "label": "Checkout Outbox" },
+    { "id": "worker", "type": "backend", "label": "Checkout Outbox Worker" },
+    { "id": "payment", "type": "external", "label": "Payment Gateway" }
+  ],
+  "segments": [
+    { "from": 152, "to": 378, "label": "Inline fast path" },
+    { "from": 398, "to": 446, "label": "Pending response" },
+    { "from": 462, "to": 654, "label": "Worker claim and readiness polling" }
+  ],
+  "messages": [
+    { "id": "create-card-order", "from": "web", "to": "order", "y": 168, "label": "Create card order with quote_id", "variant": "emphasis" },
+    { "id": "persist-event", "from": "order", "to": "outbox", "y": 196, "label": "Persist order.checkout-session-requested event", "variant": "default", "note": "Persist local orders as checkout_pending and commit the local order transaction" },
+    { "id": "process-inline", "from": "order", "to": "outbox", "y": 232, "label": "Try processing the event once inline with a 1500 ms timeout", "variant": "default" },
+    { "id": "create-session", "from": "outbox", "to": "payment", "y": 260, "label": "Create checkout session", "variant": "emphasis" },
+    { "id": "session-url", "from": "payment", "to": "outbox", "y": 288, "label": "Checkout session URL", "variant": "return" },
+    { "id": "mark-awaiting", "from": "outbox", "to": "order", "y": 316, "label": "Update orders to awaiting_payment", "variant": "default" },
+    { "id": "ready-response", "from": "order", "to": "web", "y": 344, "label": "checkout_session_url", "variant": "return", "note": "Session ready within the inline timeout" },
+    { "id": "redirect-ready", "from": "web", "to": "buyer", "y": 372, "label": "Redirect to payment provider", "variant": "return" },
+    { "id": "pending-response", "from": "order", "to": "web", "y": 408, "label": "checkout_pending and order ids", "variant": "return", "note": "Inline processing did not produce a session" },
+    { "id": "keep-preparing", "from": "web", "to": "buyer", "y": 436, "label": "Keep checkout preparation state", "variant": "return" },
+    { "id": "claim-event", "from": "worker", "to": "outbox", "y": 472, "label": "Claim a pending or lease-expired event every 5 seconds", "variant": "default" },
+    { "id": "worker-session", "from": "worker", "to": "payment", "y": 500, "label": "Create checkout session", "variant": "emphasis" },
+    { "id": "worker-url", "from": "payment", "to": "worker", "y": 528, "label": "Checkout session URL", "variant": "return" },
+    { "id": "worker-awaiting", "from": "worker", "to": "order", "y": 556, "label": "Update orders to awaiting_payment", "variant": "default" },
+    { "id": "poll-readiness", "from": "web", "to": "order", "y": 592, "label": "Poll readiness by order ids every second, for up to 30 seconds", "variant": "emphasis" },
+    { "id": "poll-url", "from": "order", "to": "web", "y": 620, "label": "checkout_session_url", "variant": "return" },
+    { "id": "redirect-pending", "from": "web", "to": "buyer", "y": 648, "label": "Redirect to payment provider", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "web", "from": 162, "to": 654, "type": "frontend" },
+    { "participant": "order", "from": 162, "to": 350, "type": "backend" },
+    { "participant": "order", "from": 402, "to": 416, "type": "backend" },
+    { "participant": "order", "from": 550, "to": 626, "type": "backend" },
+    { "participant": "outbox", "from": 190, "to": 322, "type": "messagebus" },
+    { "participant": "worker", "from": 466, "to": 562, "type": "backend" },
+    { "participant": "payment", "from": 254, "to": 294, "type": "external" },
+    { "participant": "buyer", "from": 366, "to": 654, "type": "external" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Inline fast path",
+      "items": [
+        "Card order creation persists local orders as checkout_pending before any session exists",
+        "An order.checkout-session-requested event is written in the same transaction",
+        "One inline processing pass races a 1500 ms timeout so the normal path returns checkout_session_url"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Worker and lease",
+      "items": [
+        "The worker runs only when the queue driver is Redis, ticking every 5 seconds with batches of 10",
+        "Claiming takes a pessimistic write lock and applies a 30-second lease",
+        "Processing retries after 15 s, 60 s, 5 min, 15 min, and 1 hour, and the event is marked failed after 5 attempts"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Readiness polling",
+      "items": [
+        "A pending response carries checkout_pending and order ids",
+        "The storefront polls GET /me/checkout/session/readiness?order_ids= every second for up to 30 seconds",
+        "Guests have no readiness route, so guest card checkout depends on the inline fast path"
+      ]
+    }
+  ]
+}

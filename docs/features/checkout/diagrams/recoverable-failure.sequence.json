@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Recoverable Failure Flow",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [1680, 710],
+    "views": [
+      { "id": "quote-path", "label": "Quote path", "focus": ["buyer", "web", "quote"], "note": "The buyer completes the order and the storefront creates a quote before order creation." },
+      { "id": "mapped-failures", "label": "Mapped failures", "focus": ["web", "order", "cart", "quote"], "note": "Each mapped failure kind refreshes data and shows its own recovery copy." },
+      { "id": "unmapped", "label": "Unmapped failure", "focus": ["order", "web", "buyer"], "note": "An unmapped failure shows the backend message as the toast title without refreshing data." }
+    ]
+  },
+  "participants": [
+    { "id": "buyer", "type": "external", "label": "Buyer" },
+    { "id": "web", "type": "frontend", "label": "Storefront Web" },
+    { "id": "quote", "type": "backend", "label": "Checkout Quote API" },
+    { "id": "order", "type": "backend", "label": "Order Creation API" },
+    { "id": "cart", "type": "backend", "label": "Cart Query" }
+  ],
+  "segments": [
+    { "from": 152, "to": 240, "label": "Quote" },
+    { "from": 244, "to": 600, "label": "Mapped failures refresh data" },
+    { "from": 606, "to": 636, "label": "Unmapped failure" }
+  ],
+  "messages": [
+    { "id": "complete-order", "from": "buyer", "to": "web", "y": 168, "label": "Complete order", "variant": "default" },
+    { "id": "create-quote", "from": "web", "to": "quote", "y": 196, "label": "Create quote", "variant": "emphasis" },
+    { "id": "quote-result", "from": "quote", "to": "web", "y": 224, "label": "quote_id", "variant": "return" },
+    { "id": "create-order", "from": "web", "to": "order", "y": 252, "label": "Create order with quote_id", "variant": "emphasis" },
+    { "id": "quote-expired", "from": "order", "to": "web", "y": 280, "label": "CHECKOUT_QUOTE_EXPIRED (400)", "variant": "return", "note": "Quote expired: show quote-expired recovery copy" },
+    { "id": "refresh-expired", "from": "web", "to": "cart", "y": 308, "label": "Refresh cart data", "variant": "default" },
+    { "id": "cart-changed", "from": "order", "to": "web", "y": 336, "label": "CHECKOUT_QUOTE_CART_CHANGED (400)", "variant": "return", "note": "Cart changed: show cart-changed recovery copy" },
+    { "id": "refresh-changed", "from": "web", "to": "cart", "y": 364, "label": "Refresh cart data", "variant": "default" },
+    { "id": "prices-changed", "from": "order", "to": "web", "y": 392, "label": "CHECKOUT_QUOTE_PRICES_CHANGED (400)", "variant": "return", "note": "Prices changed: drop the stale acceptance and re-quote from refreshed prices, then show prices-changed or dropped-promo-code copy" },
+    { "id": "requote", "from": "web", "to": "quote", "y": 420, "label": "Re-quote and confirm the new total again", "variant": "emphasis" },
+    { "id": "out-of-stock", "from": "order", "to": "web", "y": 448, "label": "CHECKOUT_QUOTE_RESERVATION_OUT_OF_STOCK (400)", "variant": "return", "note": "Stock unavailable: show stock recovery copy" },
+    { "id": "refresh-stock", "from": "web", "to": "cart", "y": 476, "label": "Refresh cart data", "variant": "default" },
+    { "id": "reservation-unavailable", "from": "order", "to": "web", "y": 504, "label": "CHECKOUT_QUOTE_RESERVATION_UNAVAILABLE (400)", "variant": "return", "note": "Reservation unavailable or released: show reservation recovery copy" },
+    { "id": "refresh-reservation", "from": "web", "to": "cart", "y": 532, "label": "Refresh cart data", "variant": "default" },
+    { "id": "session-pending", "from": "order", "to": "web", "y": 560, "label": "checkout_pending, then readiness polling times out", "variant": "return", "note": "Card session still pending: show checkout-still-preparing copy" },
+    { "id": "refresh-pending", "from": "web", "to": "cart", "y": 588, "label": "Refresh cart data", "variant": "default" },
+    { "id": "other-failure", "from": "order", "to": "web", "y": 616, "label": "Any other error, including CHECKOUT_SHIPPING_UNAVAILABLE", "variant": "return", "note": "Unmapped: show the backend message as the toast title and do not refresh data" }
+  ],
+  "activations": [
+    { "participant": "buyer", "from": 162, "to": 180, "type": "external" },
+    { "participant": "web", "from": 160, "to": 628, "type": "frontend" },
+    { "participant": "quote", "from": 188, "to": 232, "type": "backend" },
+    { "participant": "quote", "from": 414, "to": 426, "type": "backend" },
+    { "participant": "order", "from": 246, "to": 258, "type": "backend" },
+    { "participant": "order", "from": 274, "to": 286, "type": "backend" },
+    { "participant": "order", "from": 330, "to": 342, "type": "backend" },
+    { "participant": "order", "from": 386, "to": 398, "type": "backend" },
+    { "participant": "order", "from": 442, "to": 454, "type": "backend" },
+    { "participant": "order", "from": 498, "to": 510, "type": "backend" },
+    { "participant": "order", "from": 554, "to": 566, "type": "backend" },
+    { "participant": "order", "from": 610, "to": 622, "type": "backend" },
+    { "participant": "cart", "from": 302, "to": 314, "type": "backend" },
+    { "participant": "cart", "from": 358, "to": 370, "type": "backend" },
+    { "participant": "cart", "from": 470, "to": 482, "type": "backend" },
+    { "participant": "cart", "from": 526, "to": 538, "type": "backend" },
+    { "participant": "cart", "from": 582, "to": 594, "type": "backend" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Six mapped failure kinds",
+      "items": [
+        "Five backend codes: CHECKOUT_QUOTE_EXPIRED, CHECKOUT_QUOTE_CART_CHANGED, CHECKOUT_QUOTE_PRICES_CHANGED, CHECKOUT_QUOTE_RESERVATION_OUT_OF_STOCK, CHECKOUT_QUOTE_RESERVATION_UNAVAILABLE",
+        "One client-side message: Checkout session is still being prepared",
+        "resolveCheckoutFailure also matches backend message text as a fallback and returns unknown otherwise"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "What refreshes",
+      "items": [
+        "Every mapped kind calls getCart() before showing its copy",
+        "prices_changed additionally drops the stale acceptance and re-quotes from refreshed prices, so the buyer confirms the new total again",
+        "A quote never owns a reservation, so CHECKOUT_QUOTE_EXPIRED releases no stock; the hold belongs to the Order and is created at order creation"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Unmapped path",
+      "items": [
+        "CHECKOUT_SHIPPING_UNAVAILABLE (409, with products[].reason) comes from quote creation and order creation",
+        "resolveCheckoutFailure does not map it, so it returns unknown",
+        "An unknown failure shows the backend message as the toast title and does not refresh data"
+      ]
+    }
+  ]
+}

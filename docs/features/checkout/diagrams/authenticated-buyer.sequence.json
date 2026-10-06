@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Authenticated Buyer",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [1440, 520],
+    "views": [
+      { "id": "identity-quote", "label": "Identity and quote", "focus": ["buyer", "web", "quote"], "note": "The buyer uses a saved address id and the quote is bound to the authenticated user context." },
+      { "id": "order-and-readiness", "label": "Order and readiness", "focus": ["web", "order", "quote"], "note": "Order creation validates quote ownership, then a pending card checkout polls readiness." }
+    ]
+  },
+  "participants": [
+    { "id": "buyer", "type": "external", "label": "Buyer" },
+    { "id": "web", "type": "frontend", "label": "Storefront Web" },
+    { "id": "quote", "type": "backend", "label": "Checkout Quote API" },
+    { "id": "order", "type": "backend", "label": "Order Creation API" }
+  ],
+  "segments": [
+    { "from": 152, "to": 236, "label": "Quote with saved address" },
+    { "from": 252, "to": 392, "label": "Order creation and readiness" }
+  ],
+  "messages": [
+    { "id": "choose-address", "from": "buyer", "to": "web", "y": 168, "label": "Choose saved address", "variant": "default" },
+    { "id": "create-quote", "from": "web", "to": "quote", "y": 196, "label": "POST /me/checkout/quote with user_address_id", "variant": "emphasis", "note": "Bind the quote to the authenticated user context" },
+    { "id": "quote-result", "from": "quote", "to": "web", "y": 224, "label": "quote_id, totals, shops, expires_at", "variant": "return" },
+    { "id": "create-order", "from": "web", "to": "order", "y": 260, "label": "POST /me/checkout or PUT /me/checkout/buy-now with quote_id and payment_type", "variant": "emphasis" },
+    { "id": "validate-ownership", "from": "order", "to": "quote", "y": 288, "label": "Reload the quote and validate that the user owns it", "variant": "default" },
+    { "id": "pending-response", "from": "order", "to": "web", "y": 324, "label": "checkout_pending and order ids", "variant": "return", "note": "Card payment pending" },
+    { "id": "poll-readiness", "from": "web", "to": "order", "y": 352, "label": "GET /me/checkout/session/readiness?order_ids=", "variant": "emphasis" },
+    { "id": "resolved-response", "from": "order", "to": "web", "y": 380, "label": "checkout_session_url", "variant": "return", "note": "Card or cash payment resolved returns checkout_session_url or created order shops" }
+  ],
+  "activations": [
+    { "participant": "buyer", "from": 162, "to": 180, "type": "external" },
+    { "participant": "web", "from": 160, "to": 388, "type": "frontend" },
+    { "participant": "quote", "from": 190, "to": 218, "type": "backend" },
+    { "participant": "quote", "from": 282, "to": 296, "type": "backend" },
+    { "participant": "order", "from": 254, "to": 386, "type": "backend" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Authenticated identity",
+      "items": [
+        "Every /me/checkout route requires JWT authentication",
+        "The frontend sends user_address_id instead of a full shipping address",
+        "Authenticated quote routes are POST /me/checkout/quote and POST /me/checkout/buy-now/quote"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Order and readiness",
+      "items": [
+        "Authenticated order routes are POST /me/checkout and PUT /me/checkout/buy-now",
+        "Order creation rejects a quote the caller does not own",
+        "Pending card checkout polls GET /me/checkout/session/readiness?order_ids= every second for up to 30 seconds"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Cash close",
+      "items": [
+        "After cash order creation the buyer goes to the success page",
+        "The buyer can then continue to the authenticated orders route"
+      ]
+    }
+  ]
+}

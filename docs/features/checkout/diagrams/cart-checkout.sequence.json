@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Cart Checkout",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [1500, 640],
+    "views": [
+      { "id": "cart-entry", "label": "Cart entry", "focus": ["buyer", "web", "cart"], "note": "The buyer opens /cart/checkout and the storefront loads only the selected cart items." },
+      { "id": "quote-creation", "label": "Quote creation", "focus": ["web", "quote", "cart"], "note": "The quote prices the selected items and persists money, adjustment, and shipping snapshots." },
+      { "id": "order-creation", "label": "Order creation", "focus": ["web", "order", "quote"], "note": "Order creation reloads and validates the quote before returning a redirect or order shops." }
+    ]
+  },
+  "participants": [
+    { "id": "buyer", "type": "external", "label": "Buyer" },
+    { "id": "web", "type": "frontend", "label": "Storefront Web" },
+    { "id": "cart", "type": "frontend", "label": "Cart State" },
+    { "id": "quote", "type": "backend", "label": "Checkout Quote API" },
+    { "id": "order", "type": "backend", "label": "Order Creation API" }
+  ],
+  "segments": [
+    { "from": 152, "to": 342, "label": "Quote creation" },
+    { "from": 376, "to": 450, "label": "Order creation" }
+  ],
+  "messages": [
+    { "id": "open-checkout", "from": "buyer", "to": "web", "y": 168, "label": "Open /cart/checkout", "variant": "default" },
+    { "id": "load-items", "from": "web", "to": "cart", "y": 196, "label": "Load selected cart items", "variant": "default" },
+    { "id": "select-inputs", "from": "buyer", "to": "web", "y": 224, "label": "Select address, payment, notes, and promo codes", "variant": "default" },
+    { "id": "create-quote", "from": "web", "to": "quote", "y": 252, "label": "Create cart quote (guest or authenticated route)", "variant": "emphasis" },
+    { "id": "price-selection", "from": "quote", "to": "cart", "y": 288, "label": "Price the selected cart items only", "variant": "default", "note": "Persist money, shop adjustment, and shipping snapshots" },
+    { "id": "quote-result", "from": "quote", "to": "web", "y": 328, "label": "quote_id, totals, shops, shipping_anchor_at, expires_at", "variant": "return" },
+    { "id": "create-order", "from": "web", "to": "order", "y": 384, "label": "Create order with quote_id and payment_type", "variant": "emphasis" },
+    { "id": "reload-quote", "from": "order", "to": "quote", "y": 412, "label": "Reload and validate ownership, expiration, cart match, and shipping", "variant": "default" },
+    { "id": "order-result", "from": "order", "to": "web", "y": 440, "label": "checkout_session_url, checkout_pending, or created order shops", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "web", "from": 160, "to": 448, "type": "frontend" },
+    { "participant": "cart", "from": 190, "to": 296, "type": "frontend" },
+    { "participant": "quote", "from": 246, "to": 336, "type": "backend" },
+    { "participant": "order", "from": 378, "to": 444, "type": "backend" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Quote before order",
+      "items": [
+        "The storefront route is /cart/checkout",
+        "Guest quote route POST /checkout/cart/quote; authenticated route POST /me/checkout/quote",
+        "The quote prices the selected cart items only"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Quote ownership",
+      "items": [
+        "Quote input combines selected items, shipping destination, and shop adjustments",
+        "Guest mode sends a full shipping_address and presentment_currency; authenticated mode sends user_address_id",
+        "Response carries quote_id, shops[], shipping_anchor_at, and a 30-minute expiration"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Order creation",
+      "items": [
+        "Guest order route POST /checkout/cart with guest.email; authenticated route POST /me/checkout",
+        "Order creation reloads and validates the quote",
+        "It returns a payment redirect or created order shops"
+      ]
+    }
+  ]
+}

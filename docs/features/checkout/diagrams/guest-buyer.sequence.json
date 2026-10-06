@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Guest Buyer",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [1500, 520],
+    "views": [
+      { "id": "guest-quote", "label": "Guest quote", "focus": ["buyer", "web", "quote"], "note": "The guest sends a full shipping address and the quote is bound to the guest cart session context." },
+      { "id": "guest-order", "label": "Guest order", "focus": ["web", "order", "buyer"], "note": "Order creation sends the buyer email and returns a session URL or created order shops." },
+      { "id": "guest-tracking", "label": "Guest tracking", "focus": ["buyer", "guestlookup"], "note": "Guest order lookup at /guest-orders uses email, order ids, and ZIP." }
+    ]
+  },
+  "participants": [
+    { "id": "buyer", "type": "external", "label": "Buyer" },
+    { "id": "web", "type": "frontend", "label": "Storefront Web" },
+    { "id": "quote", "type": "backend", "label": "Checkout Quote API" },
+    { "id": "order", "type": "backend", "label": "Order Creation API" },
+    { "id": "guestlookup", "type": "backend", "label": "Guest Order Lookup" }
+  ],
+  "segments": [
+    { "from": 152, "to": 236, "label": "Guest quote" },
+    { "from": 252, "to": 324, "label": "Guest order" },
+    { "from": 340, "to": 392, "label": "Guest tracking" }
+  ],
+  "messages": [
+    { "id": "enter-shipping", "from": "buyer", "to": "web", "y": 168, "label": "Enter shipping address and email", "variant": "default" },
+    { "id": "create-quote", "from": "web", "to": "quote", "y": 196, "label": "Create guest quote with shipping_address and presentment_currency", "variant": "emphasis", "note": "Bind the quote to the guest cart session context; every guest checkout mutation requires the guest cart session cookie" },
+    { "id": "quote-result", "from": "quote", "to": "web", "y": 224, "label": "quote_id, totals, shops, expires_at", "variant": "return" },
+    { "id": "create-order", "from": "web", "to": "order", "y": 260, "label": "Create guest order with quote_id, payment_type, and guest.email", "variant": "emphasis" },
+    { "id": "order-result", "from": "order", "to": "web", "y": 288, "label": "checkout_session_url or created order shops", "variant": "return" },
+    { "id": "success-redirect", "from": "web", "to": "buyer", "y": 316, "label": "Success or payment redirect", "variant": "return" },
+    { "id": "track-order", "from": "buyer", "to": "guestlookup", "y": 352, "label": "Track order from /guest-orders with email, order ids, and ZIP", "variant": "default" },
+    { "id": "lookup-result", "from": "guestlookup", "to": "buyer", "y": 380, "label": "Matching order shops, or a not-found message", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "buyer", "from": 162, "to": 386, "type": "external" },
+    { "participant": "web", "from": 160, "to": 322, "type": "frontend" },
+    { "participant": "quote", "from": 190, "to": 232, "type": "backend" },
+    { "participant": "order", "from": 254, "to": 296, "type": "backend" },
+    { "participant": "guestlookup", "from": 346, "to": 386, "type": "backend" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Guest session",
+      "items": [
+        "Guest checkout sends a full shipping address during quote creation and the buyer email during order creation",
+        "Every guest checkout mutation requires the guest cart session cookie or fails with Guest cart session not found 404",
+        "Order creation rejects a quote the caller does not own"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Guest routes",
+      "items": [
+        "Quote routes are POST /checkout/cart/quote and POST /checkout/buy-now/quote",
+        "Order routes are POST /checkout/cart and POST /checkout/buy-now",
+        "Guest card checkout has no readiness polling and depends on the inline fast path returning checkout_session_url"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Guest tracking",
+      "items": [
+        "Tracking lives at /guest-orders and looks up through GET /checkout/guest-orders",
+        "Lookup uses a tracking token, a checkout session_id, or email with order ids and zip",
+        "Guest order lookup is throttled to 5 requests per 60 seconds"
+      ]
+    }
+  ]
+}
