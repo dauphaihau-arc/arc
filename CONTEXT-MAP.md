@@ -5,6 +5,7 @@ Arc has multiple domain contexts. Each context owns its glossary and relationshi
 ## Contexts
 
 - [Seller Catalog](./docs/domain/seller-catalog/CONTEXT.md) - Seller-managed Products, Product Variants, and commercial lifecycle.
+- [Categories](./docs/domain/categories/CONTEXT.md) - Category hierarchy, stable public identities, current slugs, and historical path ownership.
 - [Inventory](./docs/domain/inventory/CONTEXT.md) - Stable stock identities, one internal default seller Stock Pool per Inventory Item, SKUs, physical quantities, reservations, and inventory history.
 - [Checkout](./docs/domain/checkout/CONTEXT.md) - Current-offer Purchase Eligibility, default-pool reservation, and reservation outcomes.
 - [Shipping](./docs/domain/shipping/CONTEXT.md) - Reusable, shop-owned Shipping Profiles, their Destination Rates, and the Default Shipping Profile.
@@ -27,6 +28,7 @@ Arc has multiple domain contexts. Each context owns its glossary and relationshi
 - **Ordering -> Seller Catalog / Inventory**: Ordering retains purchase-time facts and historical references that constrain physical deletion.
 - **Product Imports -> Seller Catalog**: Product Imports creates Product drafts through Seller Catalog rules.
 - **Product Imports -> Inventory**: Product Imports checks SKU conflicts and creates Inventory Items through Inventory authority.
+- **Categories -> Seller Catalog**: Seller Catalog products reference Categories; Category identity and hierarchy are managed separately from Product lifecycle.
 
 These relationships describe the agreed target model. Current behavior records shipping details and tracking per shop Order as legacy evidence, exposes only Seller Fulfillment, and implements quantity-based Fulfillment Progress with partial Shipments. Seller Fulfillment is single-source: one internal default seller Stock Pool per Inventory Item. Reusable Shipping Profiles and their Product assignment exist, including the Checkout-ready designation; checkout-time Shipping Charges and buyer-chosen delivery options (tickets 08-09) and multi-location or provider sourcing are not implemented.
 
