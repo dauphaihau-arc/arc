@@ -12,6 +12,8 @@ Arc's category context owns category hierarchy, stable public identities, curren
 
 **Category Resolution**: Authoritative lookup of a category public identity returning its current slug and its ordered root-to-current ancestry. Breadcrumbs derive from this ancestry; session state is never a prerequisite.
 
+**Category Subtree Scope**: The set of a category together with its descendants, used to scope storefront listings and facets.
+
 **Legacy Category Path**: A historical hierarchical path permanently associated with the category identity it originally addressed. It is never reassigned; an unavailable owner remains unavailable rather than sending the path to another category.
 
 **Legacy Path Conflict**: A historical path with more than one candidate category owner. Ownership must be resolved explicitly before the path can be used for routing.
