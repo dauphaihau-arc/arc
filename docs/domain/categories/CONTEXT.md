@@ -24,3 +24,26 @@ Arc's category context owns category hierarchy, stable public identities, curren
 - A Category Slug may be shared by multiple categories; identity disambiguates URLs.
 - A Legacy Category Path identifies its original category, not a destination URL.
 - Category hierarchy and effective storefront availability are distinct concepts.
+
+## Supported storefront operation
+
+The public boundary uses positive decimal identities as strings; internal
+category UUIDs remain persistence relationships and are never accepted as a
+public-ID fallback. Display labels are not identity, and duplicate slugs are
+valid. API and clients speak category identity generation `2`.
+
+The hierarchy is seeded before traffic and fixed during supported operation.
+Listings and facets scope eligible Products to the Category Subtree Scope;
+facets exclude only their own active filter when calculating alternatives.
+The optional taxonomy-subtree cache lasts five minutes. Unsupported hierarchy
+changes can leave cached facets stale relative to uncached listings for that
+period; no immediate mutation consistency is promised.
+
+An accessible category with no eligible Products remains a `200` empty page.
+Category availability does not inherit Product lifecycle states. Category
+moves, new category availability controls/ancestor propagation, and explicit
+admin slug editing are deferred; existing hiding/deletion behavior is preserved.
+
+Historical paths resolve their permanent owner to its current flat URL in one
+HTTP `301`, preserving the query. Unknown paths do not redirect to a parent;
+backend failures remain errors rather than fabricated not-found results.
