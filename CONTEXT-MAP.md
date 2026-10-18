@@ -13,6 +13,7 @@ Arc has multiple domain contexts. Each context owns its glossary and relationshi
 - [Fulfillment](./docs/domain/fulfillment/CONTEXT.md) - Fulfillment responsibility, assignments, groups, physical Shipments, progress, and exceptions for confirmed Order quantities.
 - [Product Imports](./docs/domain/product-imports/CONTEXT.md) - Asynchronous XLSX submissions that create Product drafts with row-level outcomes.
 - [Promotions](./docs/domain/promotions/CONTEXT.md) - Seller Sales, Checkout Discounts, Promo Codes, and their discoverability.
+- [Finance](./docs/domain/finance/CONTEXT.md) - Journal Entries, Ledger Accounts, Seller Payable, Platform Commission, and Payouts for confirmed Order money.
 
 ## Relationships
 
@@ -29,6 +30,9 @@ Arc has multiple domain contexts. Each context owns its glossary and relationshi
 - **Product Imports -> Seller Catalog**: Product Imports creates Product drafts through Seller Catalog rules.
 - **Product Imports -> Inventory**: Product Imports checks SKU conflicts and creates Inventory Items through Inventory authority.
 - **Categories -> Seller Catalog**: Seller Catalog products reference Categories; Category identity and hierarchy are managed separately from Product lifecycle.
+- **Ordering -> Finance**: an Order's confirmed money facts and its Order Refunds are the source of Finance Journal Entries; Finance never re-prices an Order.
+- **Finance -> Ordering**: Finance reads confirmed purchase facts and never writes Order facts.
+- **Finance -> Payment**: Payouts leave through the payment provider adapter; Finance records provider outcomes rather than deciding whether a payment succeeds.
 
 These relationships describe the agreed target model. Current behavior records shipping details and tracking per shop Order as legacy evidence, exposes only Seller Fulfillment, and implements quantity-based Fulfillment Progress with partial Shipments. Seller Fulfillment is single-source: one internal default seller Stock Pool per Inventory Item. Reusable Shipping Profiles and their Product assignment exist, including the Checkout-ready designation; checkout-time Shipping Charges and buyer-chosen delivery options (tickets 08-09) and multi-location or provider sourcing are not implemented.
 
