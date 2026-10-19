@@ -21,12 +21,20 @@ A named position that Postings accumulate into, such as platform clearing, a sho
 _Avoid_: Wallet, Bucket
 
 **Seller Payable**:
-The amount Arc owes a shop from its confirmed Orders after Platform Commission and Order Refunds.
+The amount Arc owes a shop, in the shop's Settlement Currency, from its confirmed Orders after Platform Commission and Order Refunds.
 _Avoid_: Balance, Earnings, Wallet
 
 **Available Seller Payable**:
 The part of a shop's Seller Payable whose Payout Availability has been recorded, and the only part a Payout Run may pay. Everything else is not-yet-available Seller Payable.
 _Avoid_: Cleared Balance, Withdrawable, Matured Balance
+
+**Settlement Currency**:
+The shop's currency at the time a Money Event is recorded, held as a dated history. Seller Payable accrues in it.
+_Avoid_: Wallet Currency, Payout Currency, Base Currency
+
+**Cutover Rate**:
+The recorded rate at which a retired Settlement Currency converts into the shop's new one. Reversals of Money Events recorded before the change convert through it.
+_Avoid_: Migration Rate, Change Rate
 
 **Platform Commission**:
 The platform's share of an Order, fixed when the Order's Money Event is recorded and never recomputed from later commission rules.
@@ -41,7 +49,7 @@ Money returned to a buyer against one Order, in an amount no greater than that O
 _Avoid_: Reversal, Credit Note
 
 **Payout**:
-The transfer of a shop's available Seller Payable to that shop's destination account.
+The transfer of a shop's Available Seller Payable, in its Settlement Currency, to that shop's Payout Destination.
 _Avoid_: Withdrawal, Disbursement, Settlement
 
 **Payout Run**:
@@ -57,7 +65,7 @@ The amount below which a Payout Run does not pay a shop; the unpaid amount is ca
 _Avoid_: Threshold, Floor
 
 **Payout Destination**:
-The Finance-owned record of where a shop's Payouts are sent: the holder, the destination reference, the country, and the currency.
+The Finance-owned record of where a shop's Payouts are sent: the holder, the destination reference, the country, and the currency, which is the shop's Settlement Currency.
 _Avoid_: Bank Account, Payout Method, Payout Profile
 
 **Blocked Payout**:
@@ -82,14 +90,19 @@ _Avoid_: Audit, Sync
 
 ## Relationships
 
-- A Seller Payable accrues in the currency its Order was paid in; the ledger performs no currency conversion.
-- Platform Commission is charged on an Order's discounted item subtotal only; the shipping charge passes to Seller Payable in full.
+- An Order's money is converted once, into the shop's Settlement Currency, when its Money Event is recorded, at a rate frozen on the Journal Entry with its source and effective time.
+- An Order paid in its shop's Settlement Currency records no rate and no conversion.
+- An Order Refund reverses at the rates frozen on the original Journal Entry, so a refund never moves a seller's balance by an exchange rate.
+- Platform Commission is charged on an Order's discounted item subtotal only; the shipping charge passes to Seller Payable in full, all in the Settlement Currency.
 - An Order Refund reverses the same share of Platform Commission that it reverses of the Order.
 - Every discount is borne by the seller until funding is decided.
+- A shop may change its Settlement Currency only while it holds no Seller Payable in any state, available or not-yet-available, and no negative position.
+- Every Settlement Currency change is recorded with its effective date and Cutover Rate; recorded money is never re-denominated.
+- Exchange-rate movement between recording and payout sits with the platform and is recorded when a Payout converts collected money.
 - A Payout Run happens at one platform time for every shop, never at each shop's local time.
 - One shop's Payout outcome never determines another's within the same Payout Run.
-- A Ledger Account is one kind in one currency, and a shop's Seller Payable has one account per shop and currency.
-- A Payout Run produces one Payout per currency a shop holds payable in; nothing is converted at payout time.
+- A Ledger Account is one kind in one currency, and a shop has one Seller Payable account in its current Settlement Currency.
+- A Payout Run produces one Payout per shop, in its Settlement Currency; nothing is converted at payout time.
 - A seller sees Available Seller Payable and the not-yet-available remainder as separate figures.
 - A Reconciliation Exception is closed only by a Manual Adjustment; Postings are never edited or deleted.
 - One Order Refund records one provider refund, and several partial Order Refunds may belong to one Order.
@@ -99,7 +112,7 @@ _Avoid_: Audit, Sync
 - Reconciliation compares Ledger Accounts against the provider's record and never rewrites a Journal Entry.
 - An Order's confirmed money facts are the source of its Journal Entries; Finance never re-prices an Order.
 - One Money Event produces exactly one Journal Entry, and exactly one Journal Entry records a given Money Event.
-- Every Posting belongs to exactly one Ledger Account, and a Journal Entry's Postings balance to zero in their currency.
+- Every Posting belongs to exactly one Ledger Account, and a Journal Entry's Postings balance to zero in each currency they are denominated in.
 - Seller Payable is the sum of a shop's Postings; it is projected from them and never stored as an authority.
 - Platform Commission is fixed into a Posting and is not recalculated when commission rules change.
 - A Payout discharges the Seller Payable it pays; a failed Payout leaves Seller Payable unchanged.
@@ -112,3 +125,4 @@ _Avoid_: Audit, Sync
 - Which party funds a discount is undefined. Until it is decided, every discount is borne by the seller: Platform Commission is charged on the discounted subtotal and the whole discount reduces Seller Payable, with no distinction between a seller-funded Sale and a platform-funded Promotion.
 - "Order Refund" is the money returned to a buyer; the Order's own refund state remains an Ordering fact.
 - "Completed" is an Ordering status derived from delivery. Payout Availability is Finance's own recorded decision and is not the same fact as that status.
+- The shop's currency serves as both the currency a seller types prices in and its Settlement Currency; no separate settlement setting exists.
