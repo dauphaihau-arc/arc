@@ -49,7 +49,7 @@ Money returned to a buyer against one Order, in an amount no greater than that O
 _Avoid_: Reversal, Credit Note
 
 **Payout**:
-The transfer of a shop's Available Seller Payable, in its Settlement Currency, to that shop's Payout Destination.
+The transfer of a shop's Available Seller Payable, in its Settlement Currency, to that shop's Payout Account.
 _Avoid_: Withdrawal, Disbursement, Settlement
 
 **Payout Run**:
@@ -64,12 +64,12 @@ _Avoid_: Maturity, Clearing Date
 The amount below which a Payout Run does not pay a shop; the unpaid amount is carried into the next run.
 _Avoid_: Threshold, Floor
 
-**Payout Destination**:
-The Finance-owned record of where a shop's Payouts are sent: the holder, the destination reference, the country, and the currency, which is the shop's Settlement Currency.
-_Avoid_: Bank Account, Payout Method, Payout Profile
+**Payout Account**:
+The Finance-owned record of where a shop's Payouts are sent: its type, provider reference, holder, bank name, country, and the currency, which is the shop's Settlement Currency. A shop has at most one active Payout Account, and a Payout keeps pointing at the account it paid.
+_Avoid_: Bank Account, Payout Method, Payout Profile, Payout Destination
 
 **Blocked Payout**:
-A Payout a run skipped because the shop has no usable Payout Destination. It is not a failed Payout, and it leaves Seller Payable unchanged.
+A Payout a run skipped because the shop has no usable Payout Account. It is not a failed Payout, and it leaves Seller Payable unchanged.
 _Avoid_: Failed Payout, Held Payout
 
 **Manual Adjustment**:
@@ -103,6 +103,7 @@ _Avoid_: Audit, Sync
 - One shop's Payout outcome never determines another's within the same Payout Run.
 - A Ledger Account is one kind in one currency, and a shop has one Seller Payable account in its current Settlement Currency.
 - A Payout Run produces one Payout per shop, in its Settlement Currency; nothing is converted at payout time.
+- A shop has at most one active Payout Account at a time, and a past Payout keeps pointing at the Payout Account it paid.
 - A seller sees Available Seller Payable and the not-yet-available remainder as separate figures.
 - A Reconciliation Exception is closed only by a Manual Adjustment; Postings are never edited or deleted.
 - One Order Refund records one provider refund, and several partial Order Refunds may belong to one Order.
@@ -126,3 +127,4 @@ _Avoid_: Audit, Sync
 - "Order Refund" is the money returned to a buyer; the Order's own refund state remains an Ordering fact.
 - "Completed" is an Ordering status derived from delivery. Payout Availability is Finance's own recorded decision and is not the same fact as that status.
 - The shop's currency serves as both the currency a seller types prices in and its Settlement Currency; no separate settlement setting exists.
+- "Account" is never written bare in Finance: a Ledger Account holds Postings, while a Payout Account is where a Payout is sent.
