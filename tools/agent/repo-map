@@ -21,6 +21,7 @@ Topics:
   realtime-chat
   notifications
   order-export
+  finance
   inventory
   auth
   architecture
@@ -512,6 +513,43 @@ case "$TOPIC" in
     section "Verify"
     commands \
       "./scripts/verify architecture"
+    ;;
+
+  finance)
+    section "Topic"
+    echo "  finance"
+    section "Docs"
+    items \
+      "docs/features/finance-ledger" \
+      "docs/features/refund" \
+      "apps/api/docs/features/refund" \
+      "docs/adr/0004-record-shop-money-in-a-ledger-fed-by-order-money-events.md" \
+      ".scratch/finance-ledger"
+    section "API"
+    items \
+      "apps/api/api/src/domains/finance" \
+      "apps/api/api/src/domains/order/app/services/order-refund.service.ts" \
+      "apps/api/api/src/domains/order/app/services/order-refund-outbox.service.ts" \
+      "apps/api/api/src/domains/order/app/services/refund-reconciliation-worker.service.ts" \
+      "apps/api/api/src/domains/order/app/use-cases/handle-stripe-webhook" \
+      "apps/api/api/src/domains/order/app/use-cases/update-admin-order-refund" \
+      "apps/api/api/src/domains/order/app/use-cases/update-shop-order-refund" \
+      "apps/api/api/src/integrations/payment" \
+      "apps/api/api/src/platform/jobs/jobs-worker.module.ts" \
+      "apps/api/api/test/integration/finance-transactions.int-spec.ts" \
+      "apps/api/api/test/integration/finance-order-refund.int-spec.ts"
+    section "Web"
+    items \
+      "apps/web/apps/seller/src/app/pages/finances" \
+      "apps/web/apps/seller/src/domains/shop/api/finance" \
+      "apps/web/apps/seller/src/domains/shop/queries" \
+      "apps/web/packages/schemas/src/api/shop/finance"
+    common_api_guidance
+    common_web_guidance
+    section "Verify"
+    commands \
+      "./scripts/verify api" \
+      "./scripts/verify seller"
     ;;
 
   *)
