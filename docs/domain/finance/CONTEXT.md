@@ -96,8 +96,9 @@ _Avoid_: Audit, Sync
 - Platform Commission is charged on an Order's discounted item subtotal only; the shipping charge passes to Seller Payable in full, all in the Settlement Currency.
 - An Order Refund reverses the same share of Platform Commission that it reverses of the Order.
 - Every discount is borne by the seller until funding is decided.
-- A shop may change its Settlement Currency only while it holds no Seller Payable in any state, available or not-yet-available, and no negative position.
-- Every Settlement Currency change is recorded with its effective date and Cutover Rate; recorded money is never re-denominated.
+- A shop may change its Settlement Currency only while it holds no Seller Payable in any state, available or not-yet-available, and no negative position, and no Payout is pending.
+- A change is allowed at most once per 90 days per shop, and it turns automatic payouts off until a Payout Account in the new currency is recorded and verified.
+- Every Settlement Currency change is recorded with its effective date and Cutover Rate; recorded money is never re-denominated, and prices are never relabelled.
 - Exchange-rate movement between recording and payout sits with the platform and is recorded when a Payout converts collected money.
 - A Payout Run happens at one platform time for every shop, never at each shop's local time.
 - One shop's Payout outcome never determines another's within the same Payout Run.
