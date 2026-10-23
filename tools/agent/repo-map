@@ -523,6 +523,7 @@ case "$TOPIC" in
       "docs/features/finance-ledger" \
       "docs/features/refund" \
       "apps/api/docs/features/refund" \
+      "apps/api/docs/features/finances" \
       "docs/adr/0004-record-shop-money-in-a-ledger-fed-by-order-money-events.md" \
       ".scratch/finance-ledger"
     section "API"
