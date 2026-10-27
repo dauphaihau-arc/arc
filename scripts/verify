@@ -4,12 +4,17 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET="${1:-all}"
 
+check_permissions() {
+  node "$ROOT_DIR/scripts/generate-permissions.mjs" --check
+}
+
 run_api() {
   cd "$ROOT_DIR/apps/api/api"
   pnpm check
 }
 
 run_architecture() {
+  check_permissions
   cd "$ROOT_DIR/apps/api/api"
   pnpm check:architecture
 }
@@ -22,6 +27,11 @@ run_web() {
 run_seller() {
   cd "$ROOT_DIR/apps/web"
   pnpm check:seller
+}
+
+run_admin() {
+  cd "$ROOT_DIR/apps/web"
+  pnpm check:admin
 }
 
 run_storefront() {
@@ -37,6 +47,7 @@ run_inventory() {
 case "$TARGET" in
   all)
     run_api
+    check_permissions
     run_web
     run_inventory
     ;;
@@ -46,11 +57,17 @@ case "$TARGET" in
   architecture)
     run_architecture
     ;;
+  permissions)
+    check_permissions
+    ;;
   web)
     run_web
     ;;
   seller)
     run_seller
+    ;;
+  admin)
+    run_admin
     ;;
   storefront)
     run_storefront
@@ -60,7 +77,7 @@ case "$TARGET" in
     ;;
   *)
     cat >&2 <<USAGE
-Usage: ./scripts/verify [all|api|architecture|web|seller|storefront|inventory]
+Usage: ./scripts/verify [all|api|architecture|permissions|web|seller|admin|storefront|inventory]
 USAGE
     exit 2
     ;;
