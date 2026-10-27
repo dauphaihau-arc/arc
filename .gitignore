@@ -4,3 +4,5 @@ apps/web-local-backup/
 
 .conversations
 .scratch
+# Local Archify authoring scratch
+.archify/
