@@ -9,6 +9,7 @@ guidance before editing.
 - Inventory service: `apps/api/inventory-service/`
 - Web monorepo: `apps/web/`
 - Seller web app: `apps/web/apps/seller/`
+- Admin web app: `apps/web/apps/admin/`
 - Storefront web app: `apps/web/apps/storefront/`
 
 ## Before Editing
@@ -35,8 +36,8 @@ from `apps/api/api/agent-skills/README.md`.
 
 ### Web guidance
 
-For seller or storefront work, read `apps/web/AGENTS.md`, then the focused
-files linked from `apps/web/agent-skills/README.md`.
+For seller, admin, or storefront work, read `apps/web/AGENTS.md`, then the
+focused files linked from `apps/web/agent-skills/README.md`.
 
 ### Repo map
 
@@ -60,6 +61,7 @@ For focused checks:
 ./scripts/verify api
 ./scripts/verify web
 ./scripts/verify seller
+./scripts/verify admin
 ./scripts/verify storefront
 ./scripts/verify inventory
 ./scripts/verify architecture
