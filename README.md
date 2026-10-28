@@ -18,19 +18,25 @@ A ecommerce marketplace workspace where people come together to make, sell, buy,
 
 ## Product Capabilities
 
-- **Multi-vendor marketplace** - multiple sellers can operate shops and sell products through one customer storefront
-- **Multi-currency pricing** - catalog and checkout flows support market-aware prices, presentment currency, and exchange-rate metadata
+- **Multi-vendor marketplace** - multiple sellers can create shops and sell products through one customer storefront
+- **Multi-currency pricing** - catalog and checkout flows support market-aware prices, presentment currency, exchange-rate metadata, and a seller settlement currency
+- **Product catalog and inventory** - sellers manage physical or digital products, option-based variants and SKUs, images, stock levels, and AI-assisted product descriptions
+- **Bulk product import** - sellers create product drafts in bulk from an XLSX template with row-level validation and a downloadable import report
+- **Shipping profiles** - sellers define reusable shipping profiles with destination rates and delivery times, then assign a profile to each physical product
 - **Product search** - customers can search products with suggestions, filters, facets, and category navigation
 - **Product recommendations** - storefront flows surface best sellers, trending products, recently viewed items, and related products
 - **Product reviews** - customers can rate purchased products, write reviews, and upload review images
-- **Cart and checkout** - customers can manage carts, apply promo codes, choose shipping, and place cart or buy-now orders
-- **Payments and refunds** - customers can complete purchases and request refunds when needed
-- **Customer account management** - users can manage profiles, addresses, notifications, orders, reviews, and guest order tracking
-- **Notifications** - customers and sellers can receive commerce events such as order updates, shipment changes, support activity, and low-stock alerts
-- **Seller shop operations** - sellers can create shops, manage products, publish listings, update inventory, and configure shipping
-- **Promotion management** - sellers can create promo codes and sale campaigns for selected products
-- **Order fulfillment workflows** - sellers can review orders, update shipment state, handle cancellations, and process refunds
+- **Cart and checkout** - guest and signed-in customers can manage carts, apply promo codes, review shipping, and place cart or buy-now orders with card or cash-on-delivery payment
+- **Payments and refunds** - card payments run through Stripe; customers can cancel before shipment, and sellers or admins can issue and retry refunds
+- **Promotion management** - sellers can run scheduled percentage sales and create promo codes with product scope, redemption limits, and visibility
+- **Customer account management** - users can manage profiles, addresses, notifications, orders, and reviews, and guests can track orders
 - **Buyer-seller messaging** - customers and sellers can chat with conversation history, unread counts, and realtime delivery
+- **Notifications** - customers and sellers receive in-app notifications for orders, fulfillment changes, refunds, support requests, payout outcomes, and completed exports; storefront customers can also enable web push
+- **Seller dashboard** - sellers can track revenue, orders, units sold, average order value, recent orders, and top products over selectable periods
+- **Order fulfillment workflows** - sellers can prepare, update, void, and reconcile shipments, handle cancellations, and process refunds
+- **Order export** - sellers can export filtered orders to CSV, with direct downloads for small exports and background exports with progress and private download links
+- **Seller finance and payouts** - sellers can view available and pending Seller Payable, onboard a payout account, review transactions and payout history, receive scheduled or manual payouts, and manage settlement currency
+- **Admin back office** - role-gated operators can manage shops and shop-level finance, update order status, refunds, and support notes, administer users and roles, and review an audit trail
 
 For technical implementation details, see:
 
