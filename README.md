@@ -12,8 +12,9 @@ A ecommerce marketplace workspace where people come together to make, sell, buy,
 | --- | --- |
 | Storefront | https://arc.hautran.me |
 | Seller | https://seller.arc.hautran.me |
+| Admin | https://admin.arc.hautran.me |
 | API Docs | https://api.arc.hautran.me/docs |
-- [Demo guide](./docs/demo-guide.md) - cross-environment demo accounts, smoke checks, and test flows.
+- [Demo guide](./docs/operations/demo-guide.md) - cross-environment demo accounts, smoke checks, and test flows.
 
 ## Product Capabilities
 

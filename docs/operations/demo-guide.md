@@ -8,6 +8,7 @@ Use this guide to test Arc demo environments, including the deployed demo sites 
 | --- | --- | --- |
 | Storefront | https://arc.hautran.me | http://localhost:4001 |
 | Seller | https://seller.arc.hautran.me | http://localhost:4002 |
+| Admin | https://admin.arc.hautran.me | http://127.0.0.1:4003 |
 
 ## Suggested Test Accounts
 
@@ -25,6 +26,20 @@ Use these accounts on seller site.
 | `maker.sage@example.com`<br>`maker.juno@example.com` | Sage Studio, Juno Console | JPY, AUD | Currency-specific testing. Use Sage Studio for JPY formatting and zero-decimal currency assumptions; use Juno Console as a second non-USD currency check. |
 | `maker.mason@example.com`<br>`maker.olive@example.com`<br>`maker.juno@example.com` | Reed Workshop, Olive Atelier, Juno Console | EUR, USD, AUD | Messages, reviews, and order checks across shops. Each shop has 10 seeded buyer conversations; Reed Workshop and Olive Atelier have stronger review coverage. |
 | `maker.rowan@example.com`<br>`maker.signal@example.com`<br>`maker.prompt@example.com`<br>`maker.benedict@example.com` | NoirVember / Rowan Menswear, Signal Foundry, Prompt Parlor, Benedict Mercy | USD | Order export test suite. |
+
+### Admin Accounts
+
+Use these accounts on the admin site. Admin sessions are host-only and separate
+from storefront and seller sessions, so the admin app can be open in the same
+browser without signing either of those out.
+
+| Accounts | Role | Best For |
+| --- | --- | --- |
+| `admin@example.com`<br>`admin.ops@example.com`<br>`admin.support@example.com` | Admin | Shop directory and shop detail (shop information, Seller Payable, Payout Account, payout history, commission schedule), order list and order detail status/refund/support-note updates. These accounts do not have user administration, role management, or audit log access. |
+| `superadmin@example.com`<br>`superadmin.ops@example.com` | Super Admin | Everything the Admin role covers, plus user administration, role assignment, and the operator audit trail. |
+
+The admin portal opens on `/shops`. It has no dashboard or KPI surface, no
+global finance index, and no payout actions.
 
 ### Storefront Customer Accounts
 
@@ -72,6 +87,7 @@ Seeded product view history includes guest-session traffic for trending and reco
 
 - Storefront loads without console-visible runtime errors.
 - Seller app loads and redirects unauthenticated users to sign-in.
+- Admin app loads and redirects unauthenticated users to sign-in.
 - API readiness endpoint is healthy.
 - API docs or OpenAPI endpoint is reachable only as intended for the environment.
 - Images and static assets load from the configured host.
@@ -114,6 +130,18 @@ Seeded product view history includes guest-session traffic for trending and reco
 - Update inventory for a test listing.
 - Review an order and confirm status, shipping, refund, and cancellation controls are visible according to permissions.
 - Reply to a buyer message from the seller app.
+
+### Admin Flow
+
+- Sign in as an Admin account and confirm the portal lands on `/shops`.
+- Open the shop directory and filter or page through shops.
+- Open a shop detail and confirm shop information, Seller Payable, Payout Account, payout history, and commission schedule render for shops the environment has configured.
+- Open the order list, filter by status, and open an order detail.
+- Change order status, refund, or support notes only on an approved test order.
+- Confirm an Admin account cannot reach user administration, roles, or the audit log.
+- Sign in as a Super Admin account and confirm user administration, role assignment, and the audit trail load.
+- Keep the seller app signed in, then sign in to the admin app and confirm the seller session stays intact (admin cookies are separate).
+- Sign out of the admin app and confirm protected admin routes redirect to sign-in.
 
 ### Integration Checks
 
