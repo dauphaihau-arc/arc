@@ -62,6 +62,34 @@ _Avoid_: Order Status, Fulfillment Progress
 A later forecast of a Fulfillment Group's delivery that does not replace the buyer's accepted Delivery Promise.
 _Avoid_: Delivery Promise, ETA
 
+**Carrier**:
+The party that transports a Shipment. A Carrier provides carriage only and is never a Fulfillment Operator.
+_Avoid_: Provider, Shipper, Fulfiller
+
+**Handover Declaration**:
+The seller's Shipment Update reporting that a Shipment's goods were handed to its Carrier. It is seller evidence of dispatch, not carrier evidence.
+_Avoid_: Mark as shipped, Complete order
+
+**Carrier Evidence**:
+A Shipment Update reported by the Carrier, carrying that Carrier's event code, location, and occurrence time. After dispatch, Carrier Evidence is the only source of a Shipment's status.
+_Avoid_: Seller update, Tracking status
+
+**Label**:
+Postage purchased in the app for one Shipment, issued by a Carrier as a tracking number and a printable label. A Label is Shipment Preparation, not dispatch.
+_Avoid_: Shipping label, Postage, Ticket
+
+**Label Charge**:
+The amount purchasing a Label debits from the seller's payable. It is distinct from the buyer's Shipping Charge.
+_Avoid_: Label fee, Shipping fee
+
+**Rate Quote**:
+A price offered for carrying one Shipment through a Carrier service, valid until it expires. Purchasing a Label consumes one Rate Quote.
+_Avoid_: Shipping Rate, Destination Rate, Quote
+
+**Unverified Tracking**:
+A tracking number whose Carrier the platform cannot observe, so no Carrier Evidence is expected for it.
+_Avoid_: Untracked, Other carrier
+
 ### Cancellation
 
 **Cancellation Request**:
