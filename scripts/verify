@@ -44,12 +44,18 @@ run_inventory() {
   go test ./...
 }
 
+run_mock_carrier() {
+  cd "$ROOT_DIR"
+  node --test apps/api/mock-carrier-service/test
+}
+
 case "$TARGET" in
   all)
     run_api
     check_permissions
     run_web
     run_inventory
+    run_mock_carrier
     ;;
   api)
     run_api
@@ -75,9 +81,12 @@ case "$TARGET" in
   inventory)
     run_inventory
     ;;
+  mock-carrier)
+    run_mock_carrier
+    ;;
   *)
     cat >&2 <<USAGE
-Usage: ./scripts/verify [all|api|architecture|permissions|web|seller|admin|storefront|inventory]
+Usage: ./scripts/verify [all|api|architecture|permissions|web|seller|admin|storefront|inventory|mock-carrier]
 USAGE
     exit 2
     ;;
