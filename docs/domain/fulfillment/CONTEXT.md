@@ -75,11 +75,11 @@ A Shipment Update reported by the Carrier, carrying that Carrier's event code, l
 _Avoid_: Seller update, Tracking status
 
 **Label**:
-Postage purchased in the app for one Shipment, issued by a Carrier as a tracking number and a printable label. A Label is Shipment Preparation, not dispatch.
+Postage purchased in the app for one Shipment, issued by a Carrier as a tracking number and a printable label. A Label is Shipment Preparation, not dispatch. It is `purchased` until the carrier's first real scan marks it `used`; a refund before that scan marks it `voided` and voids the Shipment.
 _Avoid_: Shipping label, Postage, Ticket
 
 **Label Charge**:
-The amount purchasing a Label debits from the seller's payable. It is distinct from the buyer's Shipping Charge.
+The amount purchasing a Label debits from the seller's payable. It is distinct from the buyer's Shipping Charge. Refunding an unused Label reverses the charge exactly once.
 _Avoid_: Label fee, Shipping fee
 
 **Rate Quote**:
