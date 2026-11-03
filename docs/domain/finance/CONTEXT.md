@@ -112,7 +112,8 @@ _Avoid_: Audit, Sync
 - A Payout Run pays a shop at most once per day, and only when the shop's Available Seller Payable reaches its Payout Minimum.
 - Order Refunds can make Seller Payable negative, and a Payout Run nets a negative position before paying anything.
 - Reconciliation compares Ledger Accounts against the provider's record and never rewrites a Journal Entry.
-- An Order's confirmed money facts are the source of its Journal Entries; Finance never re-prices an Order.
+- An Order's confirmed money facts are the source of its Journal Entries; Finance never re-prices an Order. A Label Charge is its own Money Event, not an Order deduction, so it never changes an Order's facts or its Payout Availability.
+- A Label Charge debits Available Seller Payable and may make it negative; refunding an unused Label credits the same amount back exactly once.
 - One Money Event produces exactly one Journal Entry, and exactly one Journal Entry records a given Money Event.
 - Every Posting belongs to exactly one Ledger Account, and a Journal Entry's Postings balance to zero in each currency they are denominated in.
 - Seller Payable is the sum of a shop's Postings; it is projected from them and never stored as an authority.
