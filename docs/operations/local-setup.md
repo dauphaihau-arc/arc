@@ -110,14 +110,17 @@ controllers.
    pnpm spec:generate
    ```
 
-2. Generate frontend types from that artifact:
+2. Publish the package version (the API repo does this on merge to
+   `production`), then generate frontend types from the installed package:
 
    ```bash
    cd apps/web
    pnpm generate:api-types
    ```
 
-Neither step requires the API server to be running.
+Neither step requires the API server to be running. The frontend reads the
+spec from `@dauphaihau-arc/api-spec`, so installing dependencies requires a
+`NODE_AUTH_TOKEN` with `read:packages` for the `dauphaihau-arc` scope.
 
 ## Seeded Local Accounts
 
