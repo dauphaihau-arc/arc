@@ -13,6 +13,13 @@ run_api() {
   pnpm check
 }
 
+run_spec() {
+  cd "$ROOT_DIR/apps/api/api"
+  pnpm spec:generate -- --check
+  pnpm spec:package
+  pnpm spec:package -- --check
+}
+
 run_architecture() {
   check_permissions
   cd "$ROOT_DIR/apps/api/api"
@@ -22,6 +29,11 @@ run_architecture() {
 run_web() {
   cd "$ROOT_DIR/apps/web"
   pnpm check
+}
+
+run_api_types() {
+  cd "$ROOT_DIR/apps/web"
+  pnpm generate:api-types -- --check
 }
 
 run_seller() {
@@ -52,13 +64,21 @@ run_mock_carrier() {
 case "$TARGET" in
   all)
     run_api
+    run_spec
     check_permissions
+    run_api_types
     run_web
     run_inventory
     run_mock_carrier
     ;;
   api)
     run_api
+    ;;
+  spec)
+    run_spec
+    ;;
+  api-types)
+    run_api_types
     ;;
   architecture)
     run_architecture
@@ -86,7 +106,7 @@ case "$TARGET" in
     ;;
   *)
     cat >&2 <<USAGE
-Usage: ./scripts/verify [all|api|architecture|permissions|web|seller|admin|storefront|inventory|mock-carrier]
+Usage: ./scripts/verify [all|api|spec|api-types|architecture|permissions|web|seller|admin|storefront|inventory|mock-carrier]
 USAGE
     exit 2
     ;;

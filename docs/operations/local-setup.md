@@ -98,6 +98,30 @@ pnpm dev:seller
 
 Open `http://localhost:4002`.
 
+## API Contract Artifacts
+
+Regenerate the committed spec and frontend types after changing DTOs or
+controllers.
+
+1. Generate the spec from the API app:
+
+   ```bash
+   cd apps/api/api
+   pnpm spec:generate
+   ```
+
+2. Publish the package version (the API repo does this on merge to
+   `production`), then generate frontend types from the installed package:
+
+   ```bash
+   cd apps/web
+   pnpm generate:api-types
+   ```
+
+Neither step requires the API server to be running. The frontend reads the
+spec from `@dauphaihau-arc/api-spec`, so installing dependencies requires a
+`NODE_AUTH_TOKEN` with `read:packages` for the `dauphaihau-arc` scope.
+
 ## Seeded Local Accounts
 
 The demo seed includes these useful accounts in `apps/api/seed-data/auth-users.tsv`:
