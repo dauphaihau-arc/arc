@@ -98,6 +98,27 @@ pnpm dev:seller
 
 Open `http://localhost:4002`.
 
+## API Contract Artifacts
+
+Regenerate the committed spec and frontend types after changing DTOs or
+controllers.
+
+1. Generate the spec from the API app:
+
+   ```bash
+   cd apps/api/api
+   pnpm spec:generate
+   ```
+
+2. Generate frontend types from that artifact:
+
+   ```bash
+   cd apps/web
+   pnpm generate:api-types
+   ```
+
+Neither step requires the API server to be running.
+
 ## Seeded Local Accounts
 
 The demo seed includes these useful accounts in `apps/api/seed-data/auth-users.tsv`:
