@@ -1,0 +1,156 @@
+name: Verify
+
+# The superproject pins apps/api and apps/web by commit. A pin can be stale or
+# internally inconsistent (generated artifacts drifting from the sources at the
+# pinned commits), and nothing in the submodules can detect that. This workflow
+# runs the superproject's own `./scripts/verify` targets against the pinned
+# commits and never writes, commits, or publishes anything.
+#
+# Registry note: `verify api-types` installs @dauphaihau-arc/api-spec from
+# GitHub Packages. A superproject GITHUB_TOKEN can only read it after the
+# package grants dauphaihau-arc/arc access (Packages -> the package ->
+# "Manage access"). Until then, set a repository secret NPM_READ_TOKEN (a token
+# with read:packages for the dauphaihau-arc org); it takes precedence below.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - production
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  spec:
+    name: API spec matches the pinned API commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9.3.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.0.0
+          cache: pnpm
+          cache-dependency-path: apps/api/api/pnpm-lock.yaml
+
+      - name: Install API dependencies
+        working-directory: apps/api/api
+        run: pnpm install --frozen-lockfile
+
+      # Regenerates openapi.json from the pinned API source and asserts the
+      # committed document, plus the copy inside packages/api-spec, match it.
+      - name: Verify OpenAPI spec and package copy are current
+        run: ./scripts/verify spec
+
+      # The permission catalog in apps/web is generated from
+      # apps/api/seed-data/auth-permissions.tsv, so it is part of the pin.
+      - name: Verify generated permission catalog
+        run: ./scripts/verify permissions
+
+  api-types:
+    name: Web generated types match the pinned API contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Prefer an explicit read:packages secret; fall back to the built-in token,
+      # which only works once the package grants dauphaihau-arc/arc access.
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN || secrets.GITHUB_TOKEN }}
+      REGISTRY_TOKEN_SOURCE: ${{ secrets.NPM_READ_TOKEN && 'NPM_READ_TOKEN' || 'GITHUB_TOKEN' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9.3.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.13.0
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+
+      # Fail with the exact missing grant/secret instead of an opaque E401/E404
+      # from `pnpm install`. GitHub Packages answers 404, not 403, when the
+      # token simply has no access to the package.
+      - name: Check registry access to @dauphaihau-arc/api-spec
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error::The registry credential is empty (resolved from '${REGISTRY_TOKEN_SOURCE}'). Set the repository secret NPM_READ_TOKEN to a token with read:packages for the dauphaihau-arc org, or grant @dauphaihau-arc/api-spec read access to dauphaihau-arc/arc so GITHUB_TOKEN can be used."
+            exit 1
+          fi
+
+          STATUS="$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer ${NODE_AUTH_TOKEN}" \
+            -H "Accept: application/vnd.npm.install-v1+json" \
+            'https://npm.pkg.github.com/@dauphaihau-arc%2Fapi-spec')"
+
+          case "${STATUS}" in
+            200)
+              echo "Credential from ${REGISTRY_TOKEN_SOURCE} can read @dauphaihau-arc/api-spec."
+              ;;
+            401|403|404)
+              if [ "${REGISTRY_TOKEN_SOURCE}" = "NPM_READ_TOKEN" ]; then
+                echo "::error::NPM_READ_TOKEN is set but GitHub Packages denied it for @dauphaihau-arc/api-spec (HTTP ${STATUS}). Verify the token is not expired and carries read:packages for the dauphaihau-arc org (a 404 here means 'no access', not 'no package')."
+              else
+                echo "::error::GITHUB_TOKEN cannot read @dauphaihau-arc/api-spec (HTTP ${STATUS}). Grant the package access to this repository: org dauphaihau-arc -> Packages -> @dauphaihau-arc/api-spec -> Package settings -> Manage access -> add dauphaihau-arc/arc with Read. Alternatively set the repository secret NPM_READ_TOKEN to a token with read:packages for the dauphaihau-arc org."
+              fi
+              exit 1
+              ;;
+            *)
+              echo "::error::Unexpected HTTP ${STATUS} while reading @dauphaihau-arc/api-spec from GitHub Packages with the ${REGISTRY_TOKEN_SOURCE} credential. Check registry availability and the token."
+              exit 1
+              ;;
+          esac
+
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: pnpm install --frozen-lockfile
+
+      # Regenerates the committed API types from the contract package pinned in
+      # apps/web/pnpm-lock.yaml and asserts they match.
+      - name: Verify generated API types are current
+        run: ./scripts/verify api-types
+
+      # `verify api-types` only proves web agrees with the *published* contract
+      # it pins. This closes the other half: that published contract must be
+      # byte-identical to apps/api's spec at the pinned API commit.
+      - name: Verify pinned contract package matches apps/api at this pin
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          API_SPEC="apps/api/api/openapi.json"
+          PINNED_SPEC="apps/web/node_modules/@dauphaihau-arc/api-spec/openapi.json"
+          PINNED_VERSION="$(node -p "require('./apps/web/node_modules/@dauphaihau-arc/api-spec/package.json').version")"
+
+          if ! cmp -s "${API_SPEC}" "${PINNED_SPEC}"; then
+            echo "::error::apps/web pins @dauphaihau-arc/api-spec@${PINNED_VERSION}, but that published contract is not byte-identical to ${API_SPEC} at the apps/api commit this superproject pins. Bump the version in apps/api/packages/api-spec/package.json, publish it, and bump the dependency in apps/web, then regenerate the types."
+            exit 1
+          fi
+
+          echo "apps/web's pinned @dauphaihau-arc/api-spec@${PINNED_VERSION} is byte-identical to ${API_SPEC}."

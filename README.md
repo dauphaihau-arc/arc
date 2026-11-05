@@ -74,6 +74,7 @@ This repository is the parent workspace for the Arc project. The application cod
 - Parent workspace: [dauphaihau-arc/arc](https://github.com/dauphaihau-arc/arc)
 - Frontend app: [apps/web](apps/web) - [dauphaihau-arc/web](https://github.com/dauphaihau-arc/web)
 - Backend app: [apps/api](apps/api) - [dauphaihau-arc/api](https://github.com/dauphaihau-arc/api)
+- [CI](./.github/workflows/verify.yml) - runs `./scripts/verify spec`, `permissions`, and `api-types` on every pull request and production push so the pinned submodule commits and their generated contract artifacts stay consistent.
 
 ## Setup
 ```bash
