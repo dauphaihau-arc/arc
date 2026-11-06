@@ -7,6 +7,7 @@ Arc has multiple domain contexts. Each context owns its glossary and relationshi
 - [Seller Catalog](./docs/domain/seller-catalog/CONTEXT.md) - Seller-managed Products, Product Variants, and commercial lifecycle.
 - [Categories](./docs/domain/categories/CONTEXT.md) - Category hierarchy, stable public identities, current slugs, and historical path ownership.
 - [Inventory](./docs/domain/inventory/CONTEXT.md) - Stable stock identities, one internal default seller Stock Pool per Inventory Item, SKUs, physical quantities, reservations, and inventory history.
+- [Location](./docs/domain/location/CONTEXT.md) - Canonical Countries and first-level Administrative Areas referenced by addresses and destination pickers.
 - [Checkout](./docs/domain/checkout/CONTEXT.md) - Current-offer Purchase Eligibility, default-pool reservation, and reservation outcomes.
 - [Shipping](./docs/domain/shipping/CONTEXT.md) - Reusable, shop-owned Shipping Profiles, their Destination Rates, and the Default Shipping Profile.
 - [Ordering](./docs/domain/ordering/CONTEXT.md) - Confirmed Order facts, historical identity, and retention.
