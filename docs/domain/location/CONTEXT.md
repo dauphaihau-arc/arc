@@ -25,7 +25,7 @@ A country or subdivision string preserved on an existing address because it iden
 _Avoid_: Unknown country, fallback country
 
 **Address Format Rules**:
-The per-country field set, labels, order, requiredness, and postal-code format used to render an address form. Address Format Rules are not Location Reference Data and are deferred from the current model.
+The per-country field set, labels, order, requiredness, and postal-code format used to render an address form. Formats are owned by the API: generated library defaults are merged with Arc overrides in `country_address_rules`, served per country, and used for both rendering and validation.
 _Avoid_: Address metadata
 
 ## Relationships
@@ -33,14 +33,15 @@ _Avoid_: Address metadata
 - A Country has zero or more Administrative Areas. Arc never assumes every Country has a first-level subdivision.
 - An Administrative Area belongs to exactly one Country.
 - A User Address refers to a Country by canonical code and, when one applies, to an Administrative Area by canonical code.
-- An existing User Address whose text cannot be identified keeps Legacy Address Text rather than receiving a guessed code.
+- New and updated User Addresses use codes as the only write identity; display names are derived by the API.
+- An existing User Address whose text cannot be identified keeps Legacy Address Text rather than receiving a guessed code. Legacy text is storage-only and is never accepted as a new write identity.
 - Destination Rates match a buyer destination by Country identity, never by display name.
 - City is free text and is not Location Reference Data in the current model.
 - Location Reference Data never decides Purchase Eligibility or whether a shop ships to a destination.
 
 ## Flagged Ambiguities
 
-- "State" in the current address HTTP field and `user_addresses` column means Administrative Area, not a US state.
-- "Country" in an existing buyer address may be a display name; canonical identity is the alpha-2 code.
+- "State" in address HTTP/API fields and `state_code` means Administrative Area, not a US state.
+- Buyer-address country identity is always the alpha-2 code; display names are response-only.
 - "Address metadata" conflates Location Reference Data with Address Format Rules; they are separate concerns.
 - Countries without a trusted Administrative Area list accept free-text subdivision rather than a required empty dropdown.

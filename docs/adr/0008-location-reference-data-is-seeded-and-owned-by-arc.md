@@ -4,7 +4,7 @@ status: accepted
 
 # Location Reference Data is seeded and owned by Arc
 
-Both web applications currently call `countriesnow.space` directly for country and subdivision options, while Arc stores buyer-address countries and states as display names and shipping destination rates as ISO alpha-2 codes. That leaves address options dependent on a third-party service with no SLA, duplicates the integration in two apps, and forces name-to-code resolution at the shipping boundary. Arc therefore owns Location Reference Data: countries and first-level administrative areas are imported into Postgres from a pinned dr5hn dataset export, served by the API, and referenced by canonical codes. Cities remain free text, and address-format rules remain deferred.
+Both web applications currently call `countriesnow.space` directly for country and subdivision options, while Arc stores buyer-address countries and states as display names and shipping destination rates as ISO alpha-2 codes. That leaves address options dependent on a third-party service with no SLA, duplicates the integration in two apps, and forces name-to-code resolution at the shipping boundary. Arc therefore owns Location Reference Data: countries and first-level administrative areas are imported into Postgres from a pinned dr5hn dataset export, served by the API, and referenced by canonical codes. Cities remain free text. Address-format rules were subsequently implemented as server-owned rules (see `.scratch/address-location-reference-data/issues/09-server-owned-address-rules.md`).
 
 ## Dataset and license
 
@@ -23,7 +23,7 @@ No provider is called at request time; refreshes are explicit, versioned imports
 
 ## Rollout
 
-The contract moves as expand/contract rather than one hard cutover: add code columns and endpoints, backfill, switch both web apps and every location consumer, then remove legacy name-only request handling in a following release. Checkout and new order snapshots carry both codes and display names, so guest checkout and saved addresses follow one canonical path without discarding human-readable history.
+The contract moves as expand/contract rather than one hard cutover: add code columns and endpoints, backfill, switch both web apps and every location consumer, then remove legacy name-only request handling in a following release. The contract cleanup is now complete: writes use canonical codes only, and legacy `country`/`state` columns are dropped while unmatched legacy text is retained for display. Checkout and new order snapshots carry both codes and display names, so guest checkout and saved addresses follow one canonical path without discarding human-readable history.
 
 ## Consequences
 
@@ -32,4 +32,4 @@ The contract moves as expand/contract rather than one hard cutover: add code col
 - Shipping destination matching no longer needs to translate arbitrary display names at quote time.
 - Arc now carries an ODbL attribution obligation and must keep the imported reference database separable enough to satisfy share-alike when it is publicly used.
 - Refreshing the data is an operational task with a recorded dataset version, not a background dependency on a provider.
-- Address-format rules, city reference data, and autocomplete are explicitly outside this decision.
+- Address-format rules were outside the original decision; they are now served by Arc via merged library defaults and overrides. City reference data and autocomplete remain outside this decision.
