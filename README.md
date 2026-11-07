@@ -10,10 +10,10 @@ A ecommerce marketplace workspace where people come together to make, sell, buy,
 ## Demo
 | App | URL |
 | --- | --- |
-| Storefront | https://arc.hautran.me |
-| Seller | https://seller.arc.hautran.me |
-| Admin | https://admin.arc.hautran.me |
-| API Docs | https://api.arc.hautran.me/docs |
+| Storefront | https://arc.hau.sarl |
+| Seller | https://seller.arc.hau.sarl |
+| Admin | https://admin.arc.hau.sarl |
+| API Docs | https://api.arc.hau.sarl/docs |
 - [Demo guide](./docs/operations/demo-guide.md) - cross-environment demo accounts, smoke checks, and test flows.
 
 ## Product Capabilities
@@ -87,4 +87,4 @@ git submodule update --init --recursive
 
 ## Contact
 
-For any inquiries or feedback, feel free to contact [me](mailto:hi@hautran.me).
+For any inquiries or feedback, feel free to contact [me](mailto:hi@hau.sarl).

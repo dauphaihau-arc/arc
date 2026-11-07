@@ -6,9 +6,9 @@ Use this guide to test Arc demo environments, including the deployed demo sites 
 
 | App | Deployed | Local |
 | --- | --- | --- |
-| Storefront | https://arc.hautran.me | http://localhost:4001 |
-| Seller | https://seller.arc.hautran.me | http://localhost:4002 |
-| Admin | https://admin.arc.hautran.me | http://127.0.0.1:4003 |
+| Storefront | https://arc.hau.sarl | http://localhost:4001 |
+| Seller | https://seller.arc.hau.sarl | http://localhost:4002 |
+| Admin | https://admin.arc.hau.sarl | http://127.0.0.1:4003 |
 
 ## Suggested Test Accounts
 
