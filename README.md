@@ -67,6 +67,13 @@ For technical implementation details, see:
 - [Typescript](https://www.typescriptlang.org/) - Static type checking
 - [Zod](https://zod.dev/) - Schema validation
 
+## Engineering
+
+- **API contract** - the API authors one OpenAPI spec, generated in preview mode and committed, published as `@dauphaihau-arc/api-spec`, and compiled into committed frontend types; both repositories fail CI when the spec or generated types drift. [ADR 0007](./docs/adr/0007-the-api-contract-is-a-published-spec-package.md)
+- **CI and verification** - `./scripts/verify` runs focused or full checks (`api`, `spec`, `api-types`, `architecture`, `web`, `seller`, `admin`, `storefront`, `inventory`); [CI](./.github/workflows/verify.yml) runs `spec`, `permissions`, and `api-types` on every pull request and production push so the pinned submodule commits and their generated artifacts stay consistent.
+- **Decision records** - accepted architecture decisions live in [docs/adr](./docs/adr).
+- **Agent harness** - repository routers, focused per-area guidance, and `tools/agent/repo-map` keep agent-assisted changes scoped. [Harness engineering](./docs/architecture/harness-engineering.md)
+
 ## Workspace Structure
 
 This repository is the parent workspace for the Arc project. The application code lives in separate Git submodules so each app keeps its own history and remote repository.
@@ -74,7 +81,6 @@ This repository is the parent workspace for the Arc project. The application cod
 - Parent workspace: [dauphaihau-arc/arc](https://github.com/dauphaihau-arc/arc)
 - Frontend app: [apps/web](apps/web) - [dauphaihau-arc/web](https://github.com/dauphaihau-arc/web)
 - Backend app: [apps/api](apps/api) - [dauphaihau-arc/api](https://github.com/dauphaihau-arc/api)
-- [CI](./.github/workflows/verify.yml) - runs `./scripts/verify spec`, `permissions`, and `api-types` on every pull request and production push so the pinned submodule commits and their generated contract artifacts stay consistent.
 
 ## Setup
 ```bash
