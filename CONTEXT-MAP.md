@@ -36,7 +36,7 @@ Arc has multiple domain contexts. Each context owns its glossary and relationshi
 - **Finance -> Ordering**: Finance reads confirmed purchase facts and never writes Order facts.
 - **Finance -> Payment**: Payouts leave through the payment provider adapter; Finance records provider outcomes rather than deciding whether a payment succeeds.
 - **Localization -> Market**: a Locale pairs a Storefront Language with a Market's region; Market never constrains Storefront Language.
-- **Localization -> Seller Catalog / Categories**: Localized Content is owned by the context that owns the record; the storefront selects a Locale and falls back to English.
+- **Localization -> Seller Catalog / Categories**: Localized Content is owned by the context that owns the record; the storefront selects a Locale and falls back to English per field.
 - **Localization -> Auth**: Buyer Language Preference persists through `user_preferences.language` and guest preference storage.
 
 These relationships describe the agreed target model. Current behavior records shipping details and tracking per shop Order as legacy evidence, exposes only Seller Fulfillment, and implements quantity-based Fulfillment Progress with partial Shipments. Seller Fulfillment is single-source: one internal default seller Stock Pool per Inventory Item. Reusable Shipping Profiles and their Product assignment exist, including the Checkout-ready designation; checkout-time Shipping Charges and buyer-chosen delivery options (tickets 08-09) and multi-location or provider sourcing are not implemented.

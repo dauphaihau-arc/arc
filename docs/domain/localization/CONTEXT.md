@@ -34,13 +34,17 @@ _Avoid_: Locale preference, browser language
 storefront.
 _Avoid_: Localization, content translation
 
-**Localized Content**: Seller- or admin-authored text for Products, Categories,
-and Shops per Locale. Owned by the context that owns the record, not by the
-storefront.
-_Avoid_: UI translation, static content
+**Localized Content**: Per-language text for Products (title, description) and
+Categories (name), stored beside the English base record and rendered for the
+selected Storefront Language. In this delivery it is seeded and read-only:
+Seller and Admin authoring is deferred. Owned by the context that owns the
+record, not by the storefront.
+_Avoid_: UI translation, static content, machine translation
 
 **Language Fallback**: The English UI Translation or Localized Content value
-rendered when the selected language has no value.
+rendered when the selected language has no value. Localized Content falls back
+per field, so a missing translated title does not suppress a present translated
+description.
 _Avoid_: Default locale
 
 ## Relationships
@@ -54,6 +58,10 @@ _Avoid_: Default locale
 - UI Translation is owned by the storefront; Localized Content is owned by Seller
   Catalog or Categories. The storefront selects a Locale; it does not author
   content translations.
+- Localized Content is keyed by Storefront Language, not by Locale: `vi-VN` and
+  `vi-US` read the same Vietnamese content, and Locale still governs formatting.
+- Shop names and descriptions have no Localized Content. They are brand identity
+  and render as authored in every language.
 - The URL language prefix identifies the Storefront Language and is the rendering
   source of truth for UI Translation.
 
@@ -83,8 +91,9 @@ _Avoid_: Default locale
   delivery.
 - Shared `@arc/ui` components stay locale-agnostic; the storefront supplies their
   copy through props and slots. Seller and Admin are not localized by this work.
-- The first delivery translates storefront UI only. Product, Category, and Shop
-  content remain English until Localized Content exists.
+- The first delivery translates storefront UI and seeds curated Vietnamese
+  Product and Category content. Sellers cannot author translations, and no
+  machine translation runs; see below.
 - Currency is a Market preference. Changing Storefront Language never converts or
   changes currency.
 - Dates and numbers follow the Locale. Money is formatted for the selected
@@ -98,5 +107,75 @@ _Avoid_: Default locale
   Vietnamese; Storefront Language stays English until an explicit choice.
 - Each locale is self-canonical and exposes language-level `hreflang` alternates
   (`en`, `vi`) with `x-default` on English; the language switcher emits crawlable
-  links. Page titles and meta descriptions are translated. No sitemap is added in
-  this delivery.
+  links. Product and Category page titles, meta descriptions, and Open Graph text
+  use resolved content, while `hreflang` stays language-level. No sitemap is
+  added in this delivery.
+
+## Localized catalog content
+
+English is the source. Product and Category base columns hold the English text,
+and per-record translation tables hold each other language:
+
+- `products.title`, `products.description`, and `categories.name` remain the
+  English base values.
+- `product_translations(product_id, language, title?, description?)` and
+  `category_translations(category_id, language, name?)` are unique per
+  `(record, language)`, cascade with the record, and allow each translated field
+  to be null independently.
+- English reads the base columns. The API does not create or require `en`
+  translation rows, and translation writes never mutate the base columns.
+
+Resolution is server-side per field:
+
+```text
+resolved = translation(field, language) ?? base(field)
+```
+
+- The active Storefront Language comes from `X-Locale`, normalized to its
+  language prefix. An absent or unsupported value resolves to English.
+- Product detail, list, suggestions, recommendations, and category paths, plus
+  public category endpoints, resolve Product and Category content. Shared product
+  responses vary on `X-Locale`, so a cached English response is never served for
+  Vietnamese.
+- Public response field names, product and category slugs, and canonical URLs are
+  unchanged by language.
+- Shop names and descriptions are never translated. Historical Order Item
+  Snapshots keep their purchase-time text and are not retroactively translated.
+
+### Seeded, read-only
+
+Curated content ships from seed fixtures; `vi` rows are authored and reviewed,
+not generated.
+
+- `seed-data/product-translations.tsv` keys rows by `shop_slug` plus the base
+  English `product_title` and carries `language`, `title`, and `description`.
+- `seed-data/category-translations.tsv` keys rows by `category_path` and carries
+  `language` and `name`.
+- Each file supports an optional `.local.tsv` override that replaces the matching
+  shared row.
+- Seed validation rejects unknown records, unsupported languages, duplicates,
+  empty keys, and empty translated values. Every shared active Product and every
+  shared Category needs a `vi` row unless it is listed as an explicit
+  English-only exception in `seed-data/README.md`.
+- Seeding only upserts translation rows. It never calls a translation provider,
+  enqueues a job, or writes machine-translation metadata.
+- There is no Seller or Admin translation-authoring or import surface in this
+  delivery. Content corrections are made in seed data.
+
+### Search and projections
+
+Catalog documents store resolved content for every supported Storefront
+Language, with diacritic-folded normalized fields per language. Catalog search
+selects the language from `X-Locale` and matches translated titles and
+descriptions, falling back to English per field.
+
+### Deferred
+
+- Seller product content authoring and import.
+- Category content authoring.
+- Machine translation provider, background job, review states, and
+  retranslation.
+- Product option, option-value, category attribute, and attribute-option label
+  localization.
+- Shop localization, Buyer-authored content, and Storefront Languages beyond
+  `en` and `vi`.
