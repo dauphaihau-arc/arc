@@ -20,7 +20,12 @@ run_spec() {
   pnpm spec:package -- --check
 }
 
+run_repo_map() {
+  "$ROOT_DIR/tools/agent/repo-map" --check
+}
+
 run_architecture() {
+  run_repo_map
   check_permissions
   cd "$ROOT_DIR/apps/api/api"
   pnpm check:architecture
@@ -66,6 +71,7 @@ case "$TARGET" in
     run_api
     run_spec
     check_permissions
+    run_repo_map
     run_api_types
     run_web
     run_inventory

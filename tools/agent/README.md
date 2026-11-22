@@ -16,3 +16,14 @@ Use `repo-map` before starting work on a known feature area:
 
 It prints the relevant docs, API surfaces, web surfaces, guidance files, and
 verification commands for the topic.
+
+Modes:
+
+- `./tools/agent/repo-map --list` prints the topic names.
+- `./tools/agent/repo-map --check` exits non-zero when a topic names a missing
+  path or an unknown `./scripts/verify` target. It runs as part of
+  `./scripts/verify architecture` and in CI, so moving a doc or renaming a
+  verify target fails loudly instead of surfacing as `(missing)` mid-task.
+
+To add a topic, define a `topic_<name>()` function; the usage list and
+`--list` derive from those functions, and `--check` picks it up automatically.
