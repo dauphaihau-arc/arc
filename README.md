@@ -20,6 +20,7 @@ A ecommerce marketplace workspace where people come together to make, sell, buy,
 
 - **Multi-vendor marketplace** - multiple sellers can create shops and sell products through one customer storefront
 - **Multi-currency pricing** - catalog and checkout flows support market-aware prices, presentment currency, exchange-rate metadata, and a seller settlement currency
+- **Bilingual storefront and buyer messaging** - customers can browse, search, check out, and receive order, account, in-app, and Web Push messages in English or Vietnamese, with English fallback and no currency conversion; seller and admin surfaces remain English
 - **Product catalog and inventory** - sellers manage physical or digital products, option-based variants and SKUs, images, stock levels, and AI-assisted product descriptions
 - **Bulk product import** - sellers create product drafts in bulk from an XLSX template with row-level validation and a downloadable import report
 - **Shipping profiles** - sellers define reusable shipping profiles with destination rates and delivery times, then assign a profile to each physical product
@@ -72,6 +73,7 @@ For technical implementation details, see:
 - **API contract** - the API authors one OpenAPI spec, generated in preview mode and committed, published as `@dauphaihau-arc/api-spec`, and compiled into committed frontend types; both repositories fail CI when the spec or generated types drift. [ADR 0007](./docs/adr/0007-the-api-contract-is-a-published-spec-package.md)
 - **CI and verification** - `./scripts/verify` runs focused or full checks (`api`, `spec`, `api-types`, `architecture`, `web`, `seller`, `admin`, `storefront`, `inventory`); [CI](./.github/workflows/verify.yml) runs `spec`, `permissions`, and `api-types` on every pull request and production push so the pinned submodule commits and their generated artifacts stay consistent.
 - **Decision records** - accepted architecture decisions live in [docs/adr](./docs/adr).
+- **Localization** - Storefront Language, Buyer Language Preference, Order Language, and buyer Outbound Message catalogs are documented in [Localization and Storefront Language](./docs/domain/localization/CONTEXT.md) and [ADR 0009](./docs/adr/0009-outbound-messages-use-recipient-language.md).
 - **Agent harness** - repository routers, focused per-area guidance, and `tools/agent/repo-map` keep agent-assisted changes scoped. [Harness engineering](./docs/architecture/harness-engineering.md)
 
 ## Workspace Structure
