@@ -47,6 +47,33 @@ per field, so a missing translated title does not suppress a present translated
 description.
 _Avoid_: Default locale
 
+**Outbound Message**: A buyer-facing transactional message delivered by email,
+in-app notification, or Web Push. Seller/Admin messages are outside this term's
+localized meaning.
+_Avoid_: Notification, when the meaning spans email and push
+
+**Recipient Language**: The Storefront Language used to render one Outbound
+Message. Order-bound email uses the Order Language; live in-app and Web Push,
+and buyer account email, use the recipient's current Buyer Language Preference.
+_Avoid_: User locale, market language
+
+**Order Language**: The Storefront Language snapshotted on a confirmed Order
+from the checkout URL's explicit language choice. It governs order-bound email
+and future order SMS/PDF, independent of later preference changes.
+_Avoid_: Market language, currency language
+
+**Buyer Account**: An account holding only customer access. Any Seller or Admin
+role makes the account non-buyer for outbound-message language purposes.
+_Avoid_: Customer, when roles are the question
+
+**Message Catalog**: Repository-owned typed copy keyed by message identity and
+Storefront Language. Owned by the domain that owns the event.
+_Avoid_: Translation file, template
+
+**Delivery Channel**: Email, in-app notification, or Web Push. SMS and PDF
+channels are deferred.
+_Avoid_: Notification, when a specific channel is meant
+
 ## Relationships
 
 - A Locale is a Storefront Language plus a Market region; changing either changes
@@ -64,6 +91,31 @@ _Avoid_: Default locale
   and render as authored in every language.
 - The URL language prefix identifies the Storefront Language and is the rendering
   source of truth for UI Translation.
+- An Outbound Message has one Recipient Language. Order-bound email uses the
+  Order Language; live in-app/Web Push and buyer account email use the current
+  Buyer Language Preference.
+- Message Catalog copy is owned by the domain that owns the event; shared
+  rendering and channel adapters do not own business copy.
+- Seller/Admin outbound messages remain English in this delivery.
+
+## Supported outbound operation
+
+- Buyer transaction email, buyer in-app notifications, and buyer Web Push are
+  localized. Seller/Admin messages remain English. SMS and PDFs/invoices are
+  deferred.
+- Confirmed Orders carry the Order Language captured from checkout `X-Locale`;
+  existing Orders use `en`.
+- In-app text renders from notification `type` and `data` at read time. Web Push
+  renders at dispatch time. Order-bound email renders from the Order Language.
+- Stored notification `title`/`body` remain an English compatibility fallback.
+  Missing template data, unknown types, or incomplete Vietnamese copy renders the
+  whole message in English; fields are never mixed across languages.
+- Backend message catalogs have `en`/`vi` key parity enforced in CI. English is
+  the source; Vietnamese is reviewed, with no TMS or runtime machine translation.
+- Localized money uses the recipient language and the Order currency; it never
+  converts currency. Raw provider failure text stays in logs.
+- SMS consent and phone handling, and invoice/PDF generation, are separate future
+  decisions.
 
 ## Supported storefront operation
 

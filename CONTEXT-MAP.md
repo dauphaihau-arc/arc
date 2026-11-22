@@ -15,7 +15,7 @@ Arc has multiple domain contexts. Each context owns its glossary and relationshi
 - [Product Imports](./docs/domain/product-imports/CONTEXT.md) - Asynchronous XLSX submissions that create Product drafts with row-level outcomes.
 - [Promotions](./docs/domain/promotions/CONTEXT.md) - Seller Sales, Checkout Discounts, Promo Codes, and their discoverability.
 - [Finance](./docs/domain/finance/CONTEXT.md) - Journal Entries, Ledger Accounts, Seller Payable, Platform Commission, and Payouts for confirmed Order money.
-- [Localization](./docs/domain/localization/CONTEXT.md) - Storefront Language, Locale, Buyer Language Preference, UI Translation, and Localized Content ownership.
+- [Localization](./docs/domain/localization/CONTEXT.md) - Storefront Language, Locale, Buyer Language Preference, UI Translation, Localized Content ownership, and outbound-message language.
 
 ## Relationships
 
