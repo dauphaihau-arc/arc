@@ -139,8 +139,9 @@ _Avoid_: Notification, when a specific channel is meant
 - Known API error codes are translated. An unknown code shows a generic localized
   message; the raw server message and `request_id` stay in logs and never reach
   the buyer.
-- Backend-produced emails, notifications, and invoices remain English in this
-  delivery.
+- Buyer transactional email, in-app notifications, and Web Push are localized.
+  Seller/Admin messages remain English. SMS and invoice/PDF channels are
+  deferred.
 - Shared `@arc/ui` components stay locale-agnostic; the storefront supplies their
   copy through props and slots. Seller and Admin are not localized by this work.
 - The first delivery translates storefront UI and seeds curated Vietnamese
