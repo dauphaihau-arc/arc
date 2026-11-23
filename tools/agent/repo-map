@@ -573,8 +573,7 @@ topic_finance() {
     "docs/features/refund" \
     "apps/api/docs/features/refund" \
     "apps/api/docs/features/finances" \
-    "docs/adr/0004-record-shop-money-in-a-ledger-fed-by-order-money-events.md" \
-    ".scratch/finance-ledger"
+    "docs/adr/0004-record-shop-money-in-a-ledger-fed-by-order-money-events.md"
   section "API"
   items \
     "apps/api/api/src/domains/finance" \
@@ -643,8 +642,7 @@ topic_location() {
     "docs/domain/location/CONTEXT.md"
   section "Docs"
   items \
-    "docs/adr/0008-location-reference-data-is-seeded-and-owned-by-arc.md" \
-    ".scratch/address-location-reference-data"
+    "docs/adr/0008-location-reference-data-is-seeded-and-owned-by-arc.md"
   section "API"
   items \
     "apps/api/api/src/domains/location" \
@@ -675,10 +673,7 @@ topic_localization() {
   section "Docs"
   items \
     "docs/adr/0009-outbound-messages-use-recipient-language.md" \
-    "docs/features/i18n" \
-    ".scratch/storefront-i18n" \
-    ".scratch/localized-content" \
-    ".scratch/outbound-i18n"
+    "docs/features/i18n"
   section "API"
   items \
     "apps/api/api/src/platform/request-context" \

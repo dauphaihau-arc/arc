@@ -27,3 +27,5 @@ Modes:
 
 To add a topic, define a `topic_<name>()` function; the usage list and
 `--list` derive from those functions, and `--check` picks it up automatically.
+Map committed files only: CI checks out the repository without gitignored paths
+such as `.scratch/`, so a topic must not name them.
