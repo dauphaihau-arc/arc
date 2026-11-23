@@ -154,3 +154,18 @@ jobs:
           fi
 
           echo "apps/web's pinned @dauphaihau-arc/api-spec@${PINNED_VERSION} is byte-identical to ${API_SPEC}."
+
+  repo-map:
+    name: Repo map names existing paths
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      # Fails when a topic names a moved doc or directory, or an unknown
+      # `./scripts/verify` target, so the map cannot rot silently.
+      - name: Check repo-map topics
+        run: ./tools/agent/repo-map --check

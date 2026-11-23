@@ -57,7 +57,9 @@ Examples:
 ```
 
 Use repo maps before broad repository search when starting work on a known
-feature area.
+feature area. `./tools/agent/repo-map --check` verifies every topic still names
+existing paths and known `./scripts/verify` targets; it runs inside
+`./scripts/verify architecture` and in CI.
 
 ### Verification Harness
 
@@ -109,6 +111,7 @@ For humans using agents on Arc:
 - Prefer local guidance beside the code it governs.
 - Prefer executable checks over prose-only architecture rules when the rule is stable.
 - Add repo-map topics only for feature areas with stable docs and code surfaces.
+- When a doc or verify target moves, update its repo-map topic; `--check` fails otherwise.
 - Add architecture checks only when they can pass the current codebase.
 - Avoid adding guidance that repeats existing docs without changing agent behavior.
 
@@ -118,7 +121,7 @@ Arc currently has the first practical harness layer:
 
 - layered `AGENTS.md` routing
 - API and web focused guidance
-- repo-map topics for major feature areas
+- repo-map topics for major feature areas, validated in CI
 - root verification commands
 - an API architecture checker
 

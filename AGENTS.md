@@ -42,10 +42,8 @@ focused files linked from `apps/web/agent-skills/README.md`.
 ### Repo map
 
 For known feature areas, use `./tools/agent/repo-map <topic>` before broad
-search. Available topics: `checkout`, `orders`, `fulfillment`, `shipping`,
-`product-import`, `multi-currency`, `promotions`, `catalog`, `reviews`,
-`realtime-chat`, `notifications`, `order-export`, `finance`, `inventory`, `auth`, and
-`architecture`. Run `./tools/agent/repo-map` with no topic for the full list.
+search. Run `./tools/agent/repo-map --list` for the available topics, and
+`./tools/agent/repo-map` with no argument for the full usage.
 
 ## Verification
 
