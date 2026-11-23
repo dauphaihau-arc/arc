@@ -358,7 +358,7 @@ topic_catalog() {
     "apps/api/api/docs/features/public-product-facets.md" \
     "apps/api/api/docs/features/public-product-recommendations.md" \
     "apps/api/api/docs/features/product-state-lifecycle.md" \
-    "apps/api/api/docs/features/product-image-pipeline.md.md"
+    "apps/api/api/docs/features/product-image-pipeline.md"
   section "API"
   items \
     "apps/api/api/src/domains/product" \
