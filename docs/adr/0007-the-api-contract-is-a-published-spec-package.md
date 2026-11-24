@@ -8,7 +8,7 @@ The API repository is the only author of the HTTP contract. It generates `openap
 
 ## Versioning
 
-The package version is hand-written semver in the manifest: patch for descriptions and examples, minor for additive fields or endpoints, major for breaking or newly required fields. CI refuses to publish a version that already exists, so a release cannot overwrite what a consumer has pinned. Prereleases publish under the `next` tag and are never resolved by `latest`, and breaking changes are gated by `oasdiff` before a version ships. Renovate opens the upgrade PR in the web repository, where a major bump is reviewed as the type change it is.
+The package version is hand-written semver in the manifest: patch for descriptions and examples, minor for additive fields or endpoints, major for breaking or newly required fields. CI refuses to publish a version that already exists, so a release cannot overwrite what a consumer has pinned. Stable releases publish from `production` under `latest`. Integration branches publish derived prereleases under per-feature dist-tags and never move `latest`, so a consumer that wants a preview pins the exact version while production remains stable. Breaking changes are gated by `oasdiff` before a version ships. Renovate opens the upgrade PR in the web repository, where a major bump is reviewed as the type change it is.
 
 ## Enum ownership
 
