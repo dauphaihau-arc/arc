@@ -28,6 +28,11 @@ _Avoid_: Shipping Fee, Delivery Cost
 - Purchase Eligibility requires current Seller Catalog lifecycle state, a reservable default seller Stock Pool, and current Inventory state.
 - The buyer chooses a Delivery Option, not a warehouse or stock source.
 - Checkout establishes a Delivery Promise and Shipping Charge per Fulfillment Group and presents the combined Order shipping charge.
+- The real shipping address entered at checkout is the delivery destination Checkout prices and fulfills against; the Market's Preview Destination only supplies browse-time defaults and never substitutes for it.
+- A real address that a Product's Shipping Coverage supports remains purchasable even when that Market's Preview Destination is unsupported.
+- Any selected line the real address cannot receive rejects the entire quote with `CHECKOUT_SHIPPING_UNAVAILABLE`; Checkout never prices a partial selection.
+- The storefront states that shipping was recalculated for the address when the real address country differs from the Market Preview Destination.
+- Accepted quote and Order shipping facts are snapshotted at acceptance and are never rewritten by later address edits, Shipping Profile edits, or Preview Destination changes.
 - Partial Shipments must respect the buyer's accepted Delivery Promise and cannot increase the agreed Shipping Charge.
 - Confirmed fulfillment assignment and physical execution belong to Fulfillment, not Checkout.
 - A projected or searchable Product is not necessarily eligible for purchase.
@@ -41,5 +46,6 @@ _Avoid_: Shipping Fee, Delivery Cost
 - "Available in the catalog" means discoverable, not Purchase Eligibility.
 - "Available" for Purchase Eligibility means the Inventory Item's default seller Stock Pool covers the quantity, not merely a non-zero aggregate On-hand Quantity.
 - "Source" means the Inventory Item's default seller Stock Pool, not a warehouse or a Fulfillment Method.
-- Buyer-chosen delivery options, per-shop delivery promises, and shop-wide Shipping Charges are agreed target contracts (tickets 08-09); current checkout pricing and delivery estimation do not yet implement them. Multi-location or provider stock sourcing is explicitly deferred and is not represented by runtime abstractions.
+- The Preview Destination is a Market browsing default; it is neither the Checkout delivery destination nor a purchase restriction.
+- Buyer-chosen delivery options, per-shop delivery promises, and shop-wide Shipping Charges are agreed target contracts; checkout currently prices one per-shop Shipping Charge and does not yet offer these choices. Multi-location or provider stock sourcing is explicitly deferred and is not represented by runtime abstractions.
 - "Reserved" does not guarantee purchase after a truthful physical count exposes an Inventory Shortage.
