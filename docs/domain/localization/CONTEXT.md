@@ -1,16 +1,13 @@
 # Localization and Storefront Language
 
 Arc's storefront serves the same catalog under more than one UI language. This
-context owns the vocabulary for distinguishing a buyer's UI language, a market's
-commercial context, and the locale used to render and format a page. It does not
-own localized catalog content, which belongs to the context that owns each record.
+context owns the vocabulary for distinguishing a buyer's UI language and the
+Locale used to render and format a page. Market is owned by the
+[Market context](../market/CONTEXT.md); Localization references it only for the
+region a Locale pairs with. It does not own localized catalog content, which
+belongs to the context that owns each record.
 
 ## Language
-
-**Market**: The commercial configuration for a geography, identified by values
-such as `United States` and `Vietnam`. It owns the currency set, default content
-locale, and market-specific rules.
-_Avoid_: Region, country, storefront
 
 **Storefront Language**: The language of buyer-facing interface copy, identified
 by an ISO 639-1 code (`en`, `vi`). It is a buyer choice and is not constrained by

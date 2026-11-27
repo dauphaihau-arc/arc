@@ -55,7 +55,7 @@ Summary:
 - checkout has one shared boundary for cart and buy-now: the storefront creates a quote first, then creates orders from the returned `quote_id`
 - checkout quote creation owns checkout currency, totals, per-shop shipping charge and estimate, discounts, and item snapshots; a quote expires 30 minutes after its anchor instant
 - the storefront reuses an accepted quote while the cart, address, shop adjustments, and shipping fingerprint still match, and re-quotes on the review step when they change
-- order creation reloads the quote and validates ownership, expiration, cart match, and shipping deliverability; accepted shipping is copied onto the orders and never repriced
+- order creation reloads the quote and validates ownership, expiration, cart match, and shipping deliverability to the real shipping address; accepted shipping is copied onto the orders and never repriced
 - card order creation reserves one stock hold per Order without consuming it, persists orders as `checkout_pending`, writes an `order.checkout-session-requested` event in the checkout outbox in the same transaction, and attempts exactly one inline processing pass with a 1500 ms timeout
 - when the session is ready inline the response carries `checkout_session_url`; otherwise the response carries `checkout_pending` with order ids, a Redis-gated worker claims pending events every 5 seconds, and an authenticated storefront polls `GET /me/checkout/session/readiness?order_ids=` every second for up to 30 seconds
 - cash order creation reserves one stock hold per Order inside the same transaction, persists orders as `pending`, consumes the hold, and confirms after local order creation returns created order shops; with the default `local` driver the API consumes the reservation in that transaction, while with the `remote` driver it only checks that the reservation is `ACTIVE` and `inventory-service` consumes it when it processes `order.created`
@@ -136,6 +136,43 @@ Summary:
 - payment success consumes the reservation per Order; payment session expiry or abandonment releases the Order's hold through `POST /inventory/reservations/release` with reason `order_session_expired`; the delayed job `order.cleanup-expired-order-reservations` acts as the fallback release when the provider expiry webhook never arrives
 - order cancellation restores a consumed sale through `POST /inventory/reservations/restore-sale`
 - if the remote reservation is missing, inactive, expired, released, or mismatched, checkout returns the reservation-unavailable recovery path
+
+## Shipping Destination And Preview
+
+Checkout prices delivery for the real shipping address, never for the Market Preview Destination.
+
+```mermaid
+sequenceDiagram
+    actor Buyer
+    participant Cart
+    participant Web as Storefront Web
+    participant Quote as Checkout Quote API
+    participant Order as Order Creation API
+
+    Buyer->>Cart: Select items
+    Cart-->>Buyer: Keep unsupported lines, report unavailable_quantity, warn
+    Buyer->>Web: Enter the real shipping address
+    Web->>Quote: Create checkout quote for that address
+    alt Every selected line is deliverable
+        Quote->>Quote: Price shipping for the address country and snapshot accepted facts
+        Quote-->>Web: Accepted quote with the Delivery Promise
+        Note over Web: Note when the address country differs from the Market Preview Destination
+        Web->>Order: Create order with quote_id
+        Order->>Order: Validate the whole selection against the real address
+        Order-->>Web: Orders carry the same accepted shipping facts
+    else Any selected line is unsupported
+        Quote-->>Web: CHECKOUT_SHIPPING_UNAVAILABLE for the whole quote
+    end
+```
+
+Summary:
+
+- the Market Preview Destination only supplies browse-time defaults; checkout prices the real shipping address and never falls back to the preview country
+- any selected line whose Shipping Coverage lacks the real address country rejects the entire quote with `CHECKOUT_SHIPPING_UNAVAILABLE`; a direct order-creation bypass is rejected the same way, and no partial checkout is priced
+- a real address that a Product's Shipping Coverage supports remains purchasable even when that Market's Preview Destination is unsupported
+- when the real address country differs from the Preview Destination the storefront shows that shipping was recalculated for the address
+- quote acceptance snapshots the priced shipping facts into the quote and the created orders; later address edits, Shipping Profile edits, or Preview Destination changes never rewrite an accepted quote or a confirmed Order
+- unsupported selected lines stay visible in the cart with their `unavailable_quantity` and a warning, but they block checkout until the selection or address changes
 
 ## Rendered Diagrams
 

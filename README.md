@@ -74,6 +74,7 @@ For technical implementation details, see:
 - **CI and verification** - `./scripts/verify` runs focused or full checks (`api`, `spec`, `api-types`, `architecture`, `web`, `seller`, `admin`, `storefront`, `inventory`); [CI](./.github/workflows/verify.yml) runs `spec`, `permissions`, and `api-types` on every pull request and production push so the pinned submodule commits and their generated artifacts stay consistent.
 - **Decision records** - accepted architecture decisions live in [docs/adr](./docs/adr).
 - **Localization** - Storefront Language, Buyer Language Preference, Order Language, and buyer Outbound Message catalogs are documented in [Localization and Storefront Language](./docs/domain/localization/CONTEXT.md) and [ADR 0009](./docs/adr/0009-outbound-messages-use-recipient-language.md).
+- **Shipping destination** - the Market Preview Destination is browse context; Checkout prices and fulfills from the real shipping address. See [Shipping](./docs/domain/shipping/CONTEXT.md), [Market](./docs/domain/market/CONTEXT.md), and [ADR 0010](./docs/adr/0010-market-preview-is-not-a-delivery-destination.md).
 - **Agent harness** - repository routers, focused per-area guidance, and `tools/agent/repo-map` keep agent-assisted changes scoped. [Harness engineering](./docs/architecture/harness-engineering.md)
 
 ## Workspace Structure
